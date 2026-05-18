@@ -46,9 +46,8 @@ class BankSampahController extends GetxController {
           .from(SupabaseConstants.tableBankSampah)
           .select()
           .order('nama');
-      listBankSampah.value = (data as List)
-          .map((e) => BankSampahModel.fromJson(e))
-          .toList();
+      listBankSampah.value =
+          (data as List).map((e) => BankSampahModel.fromJson(e)).toList();
     } catch (e) {
       Get.snackbar('Error', 'Gagal memuat daftar bank sampah.');
     } finally {
@@ -69,12 +68,8 @@ class BankSampahController extends GetxController {
         'alamat': alamatController.text.trim().isEmpty
             ? null
             : alamatController.text.trim(),
-        'rt': rtController.text.trim().isEmpty
-            ? null
-            : rtController.text.trim(),
-        'rw': rwController.text.trim().isEmpty
-            ? null
-            : rwController.text.trim(),
+        'rt': rtController.text.trim().isEmpty ? null : rtController.text.trim(),
+        'rw': rwController.text.trim().isEmpty ? null : rwController.text.trim(),
         'is_active': isAktif.value,
       };
 
@@ -116,8 +111,7 @@ class BankSampahController extends GetxController {
     try {
       await SupabaseService.client
           .from(SupabaseConstants.tableBankSampah)
-          .update({'is_active': !b.isActive})
-          .eq('id', b.id);
+          .update({'is_active': !b.isActive}).eq('id', b.id);
       await fetchBankSampah();
     } catch (e) {
       Get.snackbar('Gagal', 'Gagal mengubah status.');

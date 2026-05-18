@@ -50,14 +50,11 @@ class HargaController extends GetxController {
   Future<void> _fetchHarga() async {
     final data = await SupabaseService.client
         .from(SupabaseConstants.tableHargaSampah)
-        .select(
-          '*, kategori_sampah(*), sub_kategori_sampah(*), jenis_sampah(*), satuan(*)',
-        )
+        .select('*, kategori_sampah(*), sub_kategori_sampah(*), jenis_sampah(*), satuan(*)')
         .eq('bank_sampah_id', bankSampahId)
         .order('updated_at', ascending: false);
-    listHarga.value = (data as List)
-        .map((e) => HargaSampahModel.fromJson(e))
-        .toList();
+    listHarga.value =
+        (data as List).map((e) => HargaSampahModel.fromJson(e)).toList();
   }
 
   Future<void> _fetchKategori() async {
@@ -66,9 +63,8 @@ class HargaController extends GetxController {
         .select()
         .eq('is_active', true)
         .order('nama');
-    listKategori.value = (data as List)
-        .map((e) => KategoriModel.fromJson(e))
-        .toList();
+    listKategori.value =
+        (data as List).map((e) => KategoriModel.fromJson(e)).toList();
   }
 
   Future<void> _fetchSubKategori(String kategoriId) async {
@@ -78,9 +74,8 @@ class HargaController extends GetxController {
         .eq('kategori_id', kategoriId)
         .eq('is_active', true)
         .order('nama');
-    listSubKategori.value = (data as List)
-        .map((e) => SubKategoriModel.fromJson(e))
-        .toList();
+    listSubKategori.value =
+        (data as List).map((e) => SubKategoriModel.fromJson(e)).toList();
   }
 
   Future<void> _fetchJenis(String subKategoriId) async {
@@ -90,9 +85,8 @@ class HargaController extends GetxController {
         .eq('sub_kategori_id', subKategoriId)
         .eq('is_active', true)
         .order('nama');
-    listJenis.value = (data as List)
-        .map((e) => JenisSampahModel.fromJson(e))
-        .toList();
+    listJenis.value =
+        (data as List).map((e) => JenisSampahModel.fromJson(e)).toList();
   }
 
   Future<void> _fetchSatuan() async {
@@ -100,9 +94,8 @@ class HargaController extends GetxController {
         .from(SupabaseConstants.tableSatuan)
         .select()
         .order('nama');
-    listSatuan.value = (data as List)
-        .map((e) => SatuanModel.fromJson(e))
-        .toList();
+    listSatuan.value =
+        (data as List).map((e) => SatuanModel.fromJson(e)).toList();
   }
 
   void _onKategoriChanged() {
@@ -159,11 +152,7 @@ class HargaController extends GetxController {
       // Upsert: update kalau sudah ada, insert kalau belum
       await SupabaseService.client
           .from(SupabaseConstants.tableHargaSampah)
-          .upsert(
-            payload,
-            onConflict:
-                'bank_sampah_id,kategori_id,sub_kategori_id,jenis_sampah_id',
-          );
+          .upsert(payload, onConflict: 'bank_sampah_id,kategori_id,sub_kategori_id,jenis_sampah_id');
 
       await _fetchHarga();
       resetForm();

@@ -6,9 +6,12 @@ import 'app/routes/app_pages.dart';
 import 'app/routes/app_routes.dart';
 import 'app/themes/app_theme.dart';
 import 'core/constants/supabase_constants.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await dotenv.load(fileName: ".env");
 
   final supabaseUrl =
       dotenv.env['SUPABASE_URL'] ?? 'https://placeholder.supabase.co';

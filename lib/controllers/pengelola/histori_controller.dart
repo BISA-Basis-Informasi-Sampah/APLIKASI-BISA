@@ -78,9 +78,8 @@ class HistoriController extends GetxController {
         .select()
         .eq('is_active', true)
         .order('nama');
-    listKategori.value = (data as List)
-        .map((e) => KategoriModel.fromJson(e))
-        .toList();
+    listKategori.value =
+        (data as List).map((e) => KategoriModel.fromJson(e)).toList();
   }
 
   List<PengelolaanSampahModel> get filteredHistori {

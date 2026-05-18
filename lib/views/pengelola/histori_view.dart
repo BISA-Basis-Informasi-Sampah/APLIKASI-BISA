@@ -25,30 +25,28 @@ class HistoriView extends GetView<HistoriController> {
         ),
         actions: [
           // Filter
-          Obx(
-            () => IconButton(
-              icon: Stack(
-                children: [
-                  const Icon(Icons.filter_list_rounded),
-                  if (controller.isFilterActive)
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: AppColors.error,
-                          shape: BoxShape.circle,
+          Obx(() => IconButton(
+                icon: Stack(
+                  children: [
+                    const Icon(Icons.filter_list_rounded),
+                    if (controller.isFilterActive)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppColors.error,
+                            shape: BoxShape.circle,
+                          ),
                         ),
                       ),
-                    ),
-                ],
-              ),
-              onPressed: () => _showFilterSheet(context),
-              tooltip: 'Filter',
-            ),
-          ),
+                  ],
+                ),
+                onPressed: () => _showFilterSheet(context),
+                tooltip: 'Filter',
+              )),
         ],
       ),
       body: Column(
@@ -61,18 +59,13 @@ class HistoriView extends GetView<HistoriController> {
               label: 'Cari data...',
               prefixIcon: Icons.search_rounded,
               onChanged: controller.onSearch,
-              suffixIcon: Obx(
-                () => controller.searchQuery.value.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(
-                          Icons.clear_rounded,
-                          size: 18,
-                          color: AppColors.outline,
-                        ),
-                        onPressed: controller.clearSearch,
-                      )
-                    : const SizedBox.shrink(),
-              ),
+              suffixIcon: Obx(() => controller.searchQuery.value.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear_rounded,
+                          size: 18, color: AppColors.outline),
+                      onPressed: controller.clearSearch,
+                    )
+                  : const SizedBox.shrink()),
             ),
           ),
 
@@ -83,9 +76,7 @@ class HistoriView extends GetView<HistoriController> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
+                    horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
                   color: AppColors.secondaryContainer,
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
@@ -99,7 +90,8 @@ class HistoriView extends GetView<HistoriController> {
                     ),
                     _SummaryItem(
                       label: 'Total Nilai',
-                      value: FormatHelper.currency(controller.totalNilai),
+                      value: FormatHelper.currency(
+                          controller.totalNilai),
                     ),
                   ],
                 ),
@@ -120,9 +112,7 @@ class HistoriView extends GetView<HistoriController> {
                   message: controller.searchQuery.value.isNotEmpty
                       ? 'Data tidak ditemukan.'
                       : 'Belum ada data pengelolaan.',
-                  actionLabel: controller.isFilterActive
-                      ? 'Reset Filter'
-                      : null,
+                  actionLabel: controller.isFilterActive ? 'Reset Filter' : null,
                   onAction: controller.isFilterActive
                       ? controller.resetFilter
                       : null,
@@ -160,8 +150,7 @@ class HistoriView extends GetView<HistoriController> {
       backgroundColor: AppColors.surfaceLowest,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppTheme.radiusXl),
-        ),
+            top: Radius.circular(AppTheme.radiusXl)),
       ),
       builder: (_) => _FilterSheet(controller: controller),
     );
@@ -177,11 +166,7 @@ class _FilterSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        16,
-        16,
-        16,
-        MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
+          16, 16, 16, MediaQuery.of(context).viewInsets.bottom + 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,25 +189,23 @@ class _FilterSheet extends StatelessWidget {
           // Filter kategori
           Text('Kategori', style: AppTextStyles.labelLg),
           const SizedBox(height: 8),
-          Obx(
-            () => Wrap(
-              spacing: 8,
-              children: [
-                _FilterChip(
-                  label: 'Semua',
-                  isSelected: controller.filterKategoriId.value.isEmpty,
-                  onTap: () => controller.filterKategoriId.value = '',
-                ),
-                ...controller.listKategoriFilter.map(
-                  (k) => _FilterChip(
-                    label: k.nama,
-                    isSelected: controller.filterKategoriId.value == k.id,
-                    onTap: () => controller.filterKategoriId.value = k.id,
+          Obx(() => Wrap(
+                spacing: 8,
+                children: [
+                  _FilterChip(
+                    label: 'Semua',
+                    isSelected: controller.filterKategoriId.value.isEmpty,
+                    onTap: () => controller.filterKategoriId.value = '',
                   ),
-                ),
-              ],
-            ),
-          ),
+                  ...controller.listKategoriFilter.map((k) => _FilterChip(
+                        label: k.nama,
+                        isSelected:
+                            controller.filterKategoriId.value == k.id,
+                        onTap: () =>
+                            controller.filterKategoriId.value = k.id,
+                      )),
+                ],
+              )),
           const SizedBox(height: 20),
 
           // Filter tanggal
@@ -231,23 +214,21 @@ class _FilterSheet extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Obx(
-                  () => _DatePickerField(
-                    label: 'Dari Tanggal',
-                    value: controller.filterTanggalMulai.value,
-                    onTap: () => controller.pickTanggalMulai(context),
-                  ),
-                ),
+                child: Obx(() => _DatePickerField(
+                      label: 'Dari Tanggal',
+                      value: controller.filterTanggalMulai.value,
+                      onTap: () =>
+                          controller.pickTanggalMulai(context),
+                    )),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Obx(
-                  () => _DatePickerField(
-                    label: 'Sampai Tanggal',
-                    value: controller.filterTanggalAkhir.value,
-                    onTap: () => controller.pickTanggalAkhir(context),
-                  ),
-                ),
+                child: Obx(() => _DatePickerField(
+                      label: 'Sampai Tanggal',
+                      value: controller.filterTanggalAkhir.value,
+                      onTap: () =>
+                          controller.pickTanggalAkhir(context),
+                    )),
               ),
             ],
           ),
@@ -310,11 +291,8 @@ class _HistoriCard extends StatelessWidget {
                   color: AppColors.secondaryContainer,
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 ),
-                child: const Icon(
-                  Icons.recycling_rounded,
-                  color: AppColors.onSecondaryContainer,
-                  size: 20,
-                ),
+                child: const Icon(Icons.recycling_rounded,
+                    color: AppColors.onSecondaryContainer, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -322,22 +300,17 @@ class _HistoriCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(item.namaItem, style: AppTextStyles.titleMd),
-                    Text(
-                      item.breadcrumb,
-                      style: AppTextStyles.bodyMd,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    Text(item.breadcrumb,
+                        style: AppTextStyles.bodyMd,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
                   ],
                 ),
               ),
               // Menu aksi
               PopupMenuButton<String>(
-                icon: const Icon(
-                  Icons.more_vert_rounded,
-                  color: AppColors.outline,
-                  size: 20,
-                ),
+                icon: const Icon(Icons.more_vert_rounded,
+                    color: AppColors.outline, size: 20),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 ),
@@ -350,11 +323,8 @@ class _HistoriCard extends StatelessWidget {
                     value: 'edit',
                     child: Row(
                       children: [
-                        Icon(
-                          Icons.edit_outlined,
-                          size: 18,
-                          color: AppColors.onSurface,
-                        ),
+                        Icon(Icons.edit_outlined,
+                            size: 18, color: AppColors.onSurface),
                         SizedBox(width: 8),
                         Text('Edit'),
                       ],
@@ -364,13 +334,11 @@ class _HistoriCard extends StatelessWidget {
                     value: 'delete',
                     child: Row(
                       children: [
-                        Icon(
-                          Icons.delete_outline_rounded,
-                          size: 18,
-                          color: AppColors.error,
-                        ),
+                        Icon(Icons.delete_outline_rounded,
+                            size: 18, color: AppColors.error),
                         SizedBox(width: 8),
-                        Text('Hapus', style: TextStyle(color: AppColors.error)),
+                        Text('Hapus',
+                            style: TextStyle(color: AppColors.error)),
                       ],
                     ),
                   ),
@@ -387,9 +355,7 @@ class _HistoriCard extends StatelessWidget {
               _InfoChip(
                 icon: Icons.scale_outlined,
                 label: FormatHelper.jumlahSatuan(
-                  item.jumlah,
-                  item.satuan?.singkatan,
-                ),
+                    item.jumlah, item.satuan?.singkatan),
               ),
               if (item.totalHarga != null && item.totalHarga! > 0)
                 _InfoChip(
@@ -400,8 +366,7 @@ class _HistoriCard extends StatelessWidget {
               _InfoChip(
                 icon: Icons.calendar_today_outlined,
                 label: FormatHelper.dateFromString(
-                  item.tanggalPengelolaan.toIso8601String(),
-                ),
+                    item.tanggalPengelolaan.toIso8601String()),
               ),
             ],
           ),
@@ -409,19 +374,14 @@ class _HistoriCard extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(
-                  Icons.notes_rounded,
-                  size: 14,
-                  color: AppColors.outline,
-                ),
+                const Icon(Icons.notes_rounded,
+                    size: 14, color: AppColors.outline),
                 const SizedBox(width: 4),
                 Expanded(
-                  child: Text(
-                    item.catatan!,
-                    style: AppTextStyles.bodyMd,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  child: Text(item.catatan!,
+                      style: AppTextStyles.bodyMd,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis),
                 ),
               ],
             ),
@@ -446,12 +406,9 @@ class _InfoChip extends StatelessWidget {
       children: [
         Icon(icon, size: 14, color: color ?? AppColors.outline),
         const SizedBox(width: 4),
-        Text(
-          label,
-          style: AppTextStyles.labelSm.copyWith(
-            color: color ?? AppColors.onSurfaceVariant,
-          ),
-        ),
+        Text(label,
+            style: AppTextStyles.labelSm
+                .copyWith(color: color ?? AppColors.onSurfaceVariant)),
       ],
     );
   }
@@ -467,18 +424,12 @@ class _SummaryItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(
-          value,
-          style: AppTextStyles.titleMd.copyWith(
-            color: AppColors.onSecondaryContainer,
-          ),
-        ),
-        Text(
-          label,
-          style: AppTextStyles.labelSm.copyWith(
-            color: AppColors.onSecondaryContainer,
-          ),
-        ),
+        Text(value,
+            style: AppTextStyles.titleMd
+                .copyWith(color: AppColors.onSecondaryContainer)),
+        Text(label,
+            style: AppTextStyles.labelSm
+                .copyWith(color: AppColors.onSecondaryContainer)),
       ],
     );
   }
@@ -544,17 +495,15 @@ class _DatePickerField extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(
-              Icons.calendar_today_outlined,
-              size: 16,
-              color: AppColors.outline,
-            ),
+            const Icon(Icons.calendar_today_outlined,
+                size: 16, color: AppColors.outline),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 value != null ? FormatHelper.date(value) : label,
                 style: value != null
-                    ? AppTextStyles.bodyMd.copyWith(color: AppColors.onSurface)
+                    ? AppTextStyles.bodyMd
+                        .copyWith(color: AppColors.onSurface)
                     : AppTextStyles.bodyMd,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

@@ -60,18 +60,15 @@ class HargaSampahModel {
       updatedAt: DateTime.parse(json['updated_at'] as String),
       kategori: json['kategori_sampah'] != null
           ? KategoriModel.fromJson(
-              json['kategori_sampah'] as Map<String, dynamic>,
-            )
+              json['kategori_sampah'] as Map<String, dynamic>)
           : null,
       subKategori: json['sub_kategori_sampah'] != null
           ? SubKategoriModel.fromJson(
-              json['sub_kategori_sampah'] as Map<String, dynamic>,
-            )
+              json['sub_kategori_sampah'] as Map<String, dynamic>)
           : null,
       jenisSampah: json['jenis_sampah'] != null
           ? JenisSampahModel.fromJson(
-              json['jenis_sampah'] as Map<String, dynamic>,
-            )
+              json['jenis_sampah'] as Map<String, dynamic>)
           : null,
       satuan: json['satuan'] != null
           ? SatuanModel.fromJson(json['satuan'] as Map<String, dynamic>)
@@ -80,11 +77,11 @@ class HargaSampahModel {
   }
 
   Map<String, dynamic> toJson() => {
-    'bank_sampah_id': bankSampahId,
-    'kategori_id': kategoriId,
-    'sub_kategori_id': subKategoriId,
-    'jenis_sampah_id': jenisSampahId,
-    'harga_per_satuan': hargaPerSatuan,
-    'satuan_id': satuanId,
-  };
+        'bank_sampah_id': bankSampahId,
+        'kategori_id': kategoriId,
+        'sub_kategori_id': subKategoriId,
+        'jenis_sampah_id': jenisSampahId,
+        'harga_per_satuan': hargaPerSatuan,
+        'satuan_id': satuanId,
+      };
 }

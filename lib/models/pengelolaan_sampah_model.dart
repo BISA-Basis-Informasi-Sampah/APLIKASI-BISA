@@ -85,24 +85,22 @@ class PengelolaanSampahModel {
       totalHarga: json['total_harga'] != null
           ? (json['total_harga'] as num).toDouble()
           : null,
-      tanggalPengelolaan: DateTime.parse(json['tanggal_pengelolaan'] as String),
+      tanggalPengelolaan:
+          DateTime.parse(json['tanggal_pengelolaan'] as String),
       catatan: json['catatan'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
       kategori: json['kategori_sampah'] != null
           ? KategoriModel.fromJson(
-              json['kategori_sampah'] as Map<String, dynamic>,
-            )
+              json['kategori_sampah'] as Map<String, dynamic>)
           : null,
       subKategori: json['sub_kategori_sampah'] != null
           ? SubKategoriModel.fromJson(
-              json['sub_kategori_sampah'] as Map<String, dynamic>,
-            )
+              json['sub_kategori_sampah'] as Map<String, dynamic>)
           : null,
       jenisSampah: json['jenis_sampah'] != null
           ? JenisSampahModel.fromJson(
-              json['jenis_sampah'] as Map<String, dynamic>,
-            )
+              json['jenis_sampah'] as Map<String, dynamic>)
           : null,
       satuan: json['satuan'] != null
           ? SatuanModel.fromJson(json['satuan'] as Map<String, dynamic>)
@@ -112,25 +110,22 @@ class PengelolaanSampahModel {
           : null,
       bankSampah: json['bank_sampah'] != null
           ? BankSampahModel.fromJson(
-              json['bank_sampah'] as Map<String, dynamic>,
-            )
+              json['bank_sampah'] as Map<String, dynamic>)
           : null,
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'bank_sampah_id': bankSampahId,
-    'profile_id': profileId,
-    'kategori_id': kategoriId,
-    'sub_kategori_id': subKategoriId,
-    'jenis_sampah_id': jenisSampahId,
-    'jumlah': jumlah,
-    'satuan_id': satuanId,
-    'harga_per_satuan': hargaPerSatuan,
-    'tanggal_pengelolaan': tanggalPengelolaan
-        .toIso8601String()
-        .split('T')
-        .first,
-    'catatan': catatan,
-  };
+        'bank_sampah_id': bankSampahId,
+        'profile_id': profileId,
+        'kategori_id': kategoriId,
+        'sub_kategori_id': subKategoriId,
+        'jenis_sampah_id': jenisSampahId,
+        'jumlah': jumlah,
+        'satuan_id': satuanId,
+        'harga_per_satuan': hargaPerSatuan,
+        'tanggal_pengelolaan':
+            tanggalPengelolaan.toIso8601String().split('T').first,
+        'catatan': catatan,
+      };
 }

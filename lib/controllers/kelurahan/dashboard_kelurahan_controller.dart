@@ -47,9 +47,7 @@ class DashboardKelurahanController extends GetxController {
         .from(SupabaseConstants.tableBankSampah)
         .select();
 
-    final list = (data as List)
-        .map((e) => BankSampahModel.fromJson(e))
-        .toList();
+    final list = (data as List).map((e) => BankSampahModel.fromJson(e)).toList();
     totalBankSampah.value = list.length;
     totalBankSampahAktif.value = list.where((b) => b.isActive).length;
     bankSampahAktif.value = list.where((b) => b.isActive).toList();
@@ -68,14 +66,10 @@ class DashboardKelurahanController extends GetxController {
 
     final list = data as List;
     totalTransaksiBulanIni.value = list.length;
-    totalJumlahBulanIni.value = list.fold(
-      0.0,
-      (sum, e) => sum + (e['jumlah'] as num).toDouble(),
-    );
+    totalJumlahBulanIni.value =
+        list.fold(0.0, (sum, e) => sum + (e['jumlah'] as num).toDouble());
     totalNilaiBulanIni.value = list.fold(
-      0.0,
-      (sum, e) => sum + ((e['total_harga'] as num?)?.toDouble() ?? 0.0),
-    );
+        0.0, (sum, e) => sum + ((e['total_harga'] as num?)?.toDouble() ?? 0.0));
   }
 
   void goToMonitoring() => Get.toNamed(AppRoutes.monitoringBankSampah);

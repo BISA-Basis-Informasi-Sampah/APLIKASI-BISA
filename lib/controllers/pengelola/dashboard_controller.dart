@@ -28,7 +28,10 @@ class DashboardController extends GetxController {
   Future<void> fetchDashboardData() async {
     isLoading.value = true;
     try {
-      await Future.wait([_fetchAktivitasTerbaru(), _fetchStatistikBulanIni()]);
+      await Future.wait([
+        _fetchAktivitasTerbaru(),
+        _fetchStatistikBulanIni(),
+      ]);
     } catch (e) {
       Get.snackbar('Error', 'Gagal memuat data dashboard.');
     } finally {

@@ -61,9 +61,8 @@ class MasterSampahController extends GetxController {
         .from(SupabaseConstants.tableKategoriSampah)
         .select()
         .order('nama');
-    listKategori.value = (data as List)
-        .map((e) => KategoriModel.fromJson(e))
-        .toList();
+    listKategori.value =
+        (data as List).map((e) => KategoriModel.fromJson(e)).toList();
     listKategoriDropdown.value = listKategori;
   }
 
@@ -72,21 +71,17 @@ class MasterSampahController extends GetxController {
         .from(SupabaseConstants.tableSubKategoriSampah)
         .select('*, kategori_sampah(nama)')
         .order('nama');
-    listSubKategori.value = (data as List)
-        .map((e) => SubKategoriModel.fromJson(e))
-        .toList();
+    listSubKategori.value =
+        (data as List).map((e) => SubKategoriModel.fromJson(e)).toList();
   }
 
   Future<void> _fetchJenis() async {
     final data = await SupabaseService.client
         .from(SupabaseConstants.tableJenisSampah)
-        .select(
-          '*, sub_kategori_sampah(nama, kategori_sampah(nama)), satuan(*)',
-        )
+        .select('*, sub_kategori_sampah(nama, kategori_sampah(nama)), satuan(*)')
         .order('nama');
-    listJenis.value = (data as List)
-        .map((e) => JenisSampahModel.fromJson(e))
-        .toList();
+    listJenis.value =
+        (data as List).map((e) => JenisSampahModel.fromJson(e)).toList();
   }
 
   Future<void> _fetchSatuan() async {
@@ -94,9 +89,8 @@ class MasterSampahController extends GetxController {
         .from(SupabaseConstants.tableSatuan)
         .select()
         .order('nama');
-    listSatuan.value = (data as List)
-        .map((e) => SatuanModel.fromJson(e))
-        .toList();
+    listSatuan.value =
+        (data as List).map((e) => SatuanModel.fromJson(e)).toList();
   }
 
   Future<void> _fetchSubKategoriDropdown() async {
@@ -109,9 +103,8 @@ class MasterSampahController extends GetxController {
         .select()
         .eq('kategori_id', selectedKategoriForm.value!.id)
         .order('nama');
-    listSubKategoriDropdown.value = (data as List)
-        .map((e) => SubKategoriModel.fromJson(e))
-        .toList();
+    listSubKategoriDropdown.value =
+        (data as List).map((e) => SubKategoriModel.fromJson(e)).toList();
   }
 
   void resetForm() {
@@ -131,11 +124,11 @@ class MasterSampahController extends GetxController {
       await SupabaseService.client
           .from(SupabaseConstants.tableKategoriSampah)
           .insert({
-            'nama': namaController.text.trim(),
-            'deskripsi': deskripsiController.text.trim().isEmpty
-                ? null
-                : deskripsiController.text.trim(),
-          });
+        'nama': namaController.text.trim(),
+        'deskripsi': deskripsiController.text.trim().isEmpty
+            ? null
+            : deskripsiController.text.trim(),
+      });
       await _fetchKategori();
       resetForm();
       Get.snackbar('Berhasil', 'Kategori berhasil ditambahkan.');
@@ -157,12 +150,12 @@ class MasterSampahController extends GetxController {
       await SupabaseService.client
           .from(SupabaseConstants.tableSubKategoriSampah)
           .insert({
-            'kategori_id': selectedKategoriForm.value!.id,
-            'nama': namaController.text.trim(),
-            'deskripsi': deskripsiController.text.trim().isEmpty
-                ? null
-                : deskripsiController.text.trim(),
-          });
+        'kategori_id': selectedKategoriForm.value!.id,
+        'nama': namaController.text.trim(),
+        'deskripsi': deskripsiController.text.trim().isEmpty
+            ? null
+            : deskripsiController.text.trim(),
+      });
       await _fetchSubKategori();
       resetForm();
       Get.snackbar('Berhasil', 'Sub kategori berhasil ditambahkan.');
@@ -184,13 +177,13 @@ class MasterSampahController extends GetxController {
       await SupabaseService.client
           .from(SupabaseConstants.tableJenisSampah)
           .insert({
-            'sub_kategori_id': selectedSubKategoriForm.value!.id,
-            'nama': namaController.text.trim(),
-            'deskripsi': deskripsiController.text.trim().isEmpty
-                ? null
-                : deskripsiController.text.trim(),
-            'satuan_default_id': selectedSatuanForm.value?.id,
-          });
+        'sub_kategori_id': selectedSubKategoriForm.value!.id,
+        'nama': namaController.text.trim(),
+        'deskripsi': deskripsiController.text.trim().isEmpty
+            ? null
+            : deskripsiController.text.trim(),
+        'satuan_default_id': selectedSatuanForm.value?.id,
+      });
       await _fetchJenis();
       resetForm();
       Get.snackbar('Berhasil', 'Jenis sampah berhasil ditambahkan.');
@@ -205,7 +198,9 @@ class MasterSampahController extends GetxController {
     if (!formKey.currentState!.validate()) return;
     isSaving.value = true;
     try {
-      await SupabaseService.client.from(SupabaseConstants.tableSatuan).insert({
+      await SupabaseService.client
+          .from(SupabaseConstants.tableSatuan)
+          .insert({
         'nama': namaController.text.trim(),
         'singkatan': singkatanController.text.trim(),
       });
@@ -228,10 +223,7 @@ class MasterSampahController extends GetxController {
       listKategori.removeWhere((e) => e.id == id);
       Get.snackbar('Berhasil', 'Kategori dihapus.');
     } catch (e) {
-      Get.snackbar(
-        'Gagal',
-        'Kategori tidak bisa dihapus karena masih digunakan.',
-      );
+      Get.snackbar('Gagal', 'Kategori tidak bisa dihapus karena masih digunakan.');
     }
   }
 
@@ -244,10 +236,7 @@ class MasterSampahController extends GetxController {
       listSubKategori.removeWhere((e) => e.id == id);
       Get.snackbar('Berhasil', 'Sub kategori dihapus.');
     } catch (e) {
-      Get.snackbar(
-        'Gagal',
-        'Sub kategori tidak bisa dihapus karena masih digunakan.',
-      );
+      Get.snackbar('Gagal', 'Sub kategori tidak bisa dihapus karena masih digunakan.');
     }
   }
 
@@ -260,10 +249,7 @@ class MasterSampahController extends GetxController {
       listJenis.removeWhere((e) => e.id == id);
       Get.snackbar('Berhasil', 'Jenis sampah dihapus.');
     } catch (e) {
-      Get.snackbar(
-        'Gagal',
-        'Jenis sampah tidak bisa dihapus karena masih digunakan.',
-      );
+      Get.snackbar('Gagal', 'Jenis sampah tidak bisa dihapus karena masih digunakan.');
     }
   }
 
@@ -276,10 +262,7 @@ class MasterSampahController extends GetxController {
       listSatuan.removeWhere((e) => e.id == id);
       Get.snackbar('Berhasil', 'Satuan dihapus.');
     } catch (e) {
-      Get.snackbar(
-        'Gagal',
-        'Satuan tidak bisa dihapus karena masih digunakan.',
-      );
+      Get.snackbar('Gagal', 'Satuan tidak bisa dihapus karena masih digunakan.');
     }
   }
 

@@ -1,0 +1,316 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../../app/routes/app_routes.dart';
+import '../../app/themes/app_colors.dart';
+import '../../app/themes/app_text_styles.dart';
+import '../../app/themes/app_theme.dart';
+import '../../controllers/kelurahan/pengelola_controller.dart';
+import '../../core/utils/format_helper.dart';
+import '../../core/widgets/app_widgets.dart';
+import '../../models/profile_model.dart';
+
+class PengelolaListView extends GetView<PengelolaController> {
+  const PengelolaListView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Manajemen Pengelola'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => Get.back(),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_add_rounded),
+            onPressed: () {
+              controller.resetForm();
+              Get.toNamed(AppRoutes.formPengelola);
+            },
+            tooltip: 'Tambah Pengelola',
+          ),
+        ],
+      ),
+      body: Obx(() {
+        if (controller.isLoading.value) return const LoadingWidget();
+
+        if (controller.listPengelola.isEmpty) {
+          return EmptyState(
+            icon: Icons.people_outline_rounded,
+            message: 'Belum ada pengelola terdaftar.',
+            actionLabel: 'Tambah Pengelola',
+            onAction: () {
+              controller.resetForm();
+              Get.toNamed(AppRoutes.formPengelola);
+            },
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: controller.fetchAll,
+          color: AppColors.primary,
+          child: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+            itemCount: controller.listPengelola.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemBuilder: (context, i) {
+              final pengelola = controller.listPengelola[i];
+              return _PengelolaCard(
+                pengelola: pengelola,
+                listBankSampah: controller.listBankSampah,
+                onHapus: () => _confirmHapus(context, pengelola, controller),
+                onAturBankSampah: () =>
+                    _showAturBankSampahSheet(context, pengelola, controller),
+              );
+            },
+          ),
+        );
+      }),
+    );
+  }
+}
+
+// ── Card Pengelola ─────────────────────────────────────────────────────────────
+
+class _PengelolaCard extends StatelessWidget {
+  final ProfileModel pengelola;
+  final dynamic listBankSampah;
+  final VoidCallback onHapus;
+  final VoidCallback onAturBankSampah;
+
+  const _PengelolaCard({
+    required this.pengelola,
+    required this.listBankSampah,
+    required this.onHapus,
+    required this.onAturBankSampah,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: AppColors.primaryContainer.withOpacity(0.2),
+                child: Text(
+                  pengelola.namaLengkap.isNotEmpty
+                      ? pengelola.namaLengkap[0].toUpperCase()
+                      : '?',
+                  style: AppTextStyles.titleMd.copyWith(
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(pengelola.namaLengkap, style: AppTextStyles.titleMd),
+                    if (pengelola.noHp != null &&
+                        pengelola.noHp!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.phone_outlined,
+                            size: 12,
+                            color: AppColors.outline,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            pengelola.noHp!,
+                            style: AppTextStyles.bodyMd.copyWith(
+                              color: AppColors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 2),
+                    Text(
+                      'Bergabung ${FormatHelper.date(pengelola.createdAt)}',
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuButton<String>(
+                icon: const Icon(
+                  Icons.more_vert_rounded,
+                  color: AppColors.outline,
+                ),
+                onSelected: (v) {
+                  if (v == 'atur') onAturBankSampah();
+                  if (v == 'hapus') onHapus();
+                },
+                itemBuilder: (_) => [
+                  const PopupMenuItem(
+                    value: 'atur',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.store_rounded,
+                          size: 18,
+                          color: AppColors.primary,
+                        ),
+                        SizedBox(width: 8),
+                        Text('Atur Bank Sampah'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'hapus',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.delete_outline_rounded,
+                          size: 18,
+                          color: AppColors.error,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Hapus Pengelola',
+                          style: TextStyle(color: AppColors.error),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Atur Bank Sampah Bottom Sheet ─────────────────────────────────────────────
+
+Future<void> _showAturBankSampahSheet(
+  BuildContext context,
+  ProfileModel pengelola,
+  PengelolaController controller,
+) async {
+  // Load existing relasi
+  final existing = await controller.getBankSampahPengelola(pengelola.id);
+  final selected = existing.obs;
+
+  await showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: AppColors.surfaceLowest,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(AppTheme.radiusXl),
+      ),
+    ),
+    builder: (ctx) => DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.6,
+      maxChildSize: 0.85,
+      builder: (_, scrollCtrl) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.outlineVariant,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text('Atur Bank Sampah', style: AppTextStyles.titleLg),
+            Text(
+              pengelola.namaLengkap,
+              style: AppTextStyles.bodyMd.copyWith(
+                color: AppColors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: Obx(
+                () => ListView.separated(
+                  controller: scrollCtrl,
+                  itemCount: controller.listBankSampah.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (_, i) {
+                    final bank = controller.listBankSampah[i];
+                    return Obx(
+                      () => CheckboxListTile(
+                        title: Text(
+                          bank.namaLengkap,
+                          style: AppTextStyles.bodyMd,
+                        ),
+                        subtitle: bank.alamat != null
+                            ? Text(
+                                bank.alamat!,
+                                style: AppTextStyles.bodyMd.copyWith(
+                                  color: AppColors.onSurfaceVariant,
+                                ),
+                              )
+                            : null,
+                        value: selected.contains(bank.id),
+                        onChanged: (v) {
+                          if (v == true) {
+                            selected.add(bank.id);
+                          } else {
+                            selected.remove(bank.id);
+                          }
+                        },
+                        activeColor: AppColors.primary,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            AppButton(
+              label: 'Simpan Relasi',
+              onPressed: () async {
+                await controller.updateRelasiPengelola(
+                  pengelola.id,
+                  selected.toList(),
+                );
+                Get.back();
+              },
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+Future<void> _confirmHapus(
+  BuildContext context,
+  ProfileModel pengelola,
+  PengelolaController controller,
+) async {
+  final ok = await ConfirmDialog.show(
+    title: 'Hapus Pengelola',
+    message:
+        'Yakin ingin menghapus "${pengelola.namaLengkap}"? Akun dan semua relasinya akan dihapus.',
+    confirmLabel: 'Hapus',
+    isDanger: true,
+  );
+  if (ok) controller.hapusPengelola(pengelola.id);
+}

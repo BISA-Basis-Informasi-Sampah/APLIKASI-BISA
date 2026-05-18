@@ -46,9 +46,8 @@ class PengelolaController extends GetxController {
         .select()
         .eq('role', 'pengelola')
         .order('nama_lengkap');
-    listPengelola.value = (data as List)
-        .map((e) => ProfileModel.fromJson(e))
-        .toList();
+    listPengelola.value =
+        (data as List).map((e) => ProfileModel.fromJson(e)).toList();
   }
 
   Future<void> _fetchBankSampah() async {
@@ -57,9 +56,8 @@ class PengelolaController extends GetxController {
         .select()
         .eq('is_active', true)
         .order('nama');
-    listBankSampah.value = (data as List)
-        .map((e) => BankSampahModel.fromJson(e))
-        .toList();
+    listBankSampah.value =
+        (data as List).map((e) => BankSampahModel.fromJson(e)).toList();
   }
 
   Future<List<String>> getBankSampahPengelola(String profileId) async {
@@ -95,22 +93,23 @@ class PengelolaController extends GetxController {
       final profileData = await SupabaseService.client
           .from(SupabaseConstants.tableProfiles)
           .insert({
-            'auth_user_id': response.user!.id,
-            'nama_lengkap': namaController.text.trim(),
-            'no_hp': noHpController.text.trim().isEmpty
-                ? null
-                : noHpController.text.trim(),
-            'role': 'pengelola',
-          })
-          .select()
-          .single();
+        'auth_user_id': response.user!.id,
+        'nama_lengkap': namaController.text.trim(),
+        'no_hp': noHpController.text.trim().isEmpty
+            ? null
+            : noHpController.text.trim(),
+        'role': 'pengelola',
+      }).select().single();
 
       final profileId = profileData['id'] as String;
 
       // 3. Hubungkan ke bank sampah yang dipilih
       if (selectedBankSampahIds.isNotEmpty) {
         final relasi = selectedBankSampahIds
-            .map((bsId) => {'profile_id': profileId, 'bank_sampah_id': bsId})
+            .map((bsId) => {
+                  'profile_id': profileId,
+                  'bank_sampah_id': bsId,
+                })
             .toList();
         await SupabaseService.client
             .from(SupabaseConstants.tablePengelolaBankSampah)
@@ -128,9 +127,7 @@ class PengelolaController extends GetxController {
   }
 
   Future<void> updateRelasiPengelola(
-    String profileId,
-    List<String> bankSampahIds,
-  ) async {
+      String profileId, List<String> bankSampahIds) async {
     try {
       // Hapus semua relasi lama
       await SupabaseService.client
@@ -141,7 +138,10 @@ class PengelolaController extends GetxController {
       // Insert relasi baru
       if (bankSampahIds.isNotEmpty) {
         final relasi = bankSampahIds
-            .map((bsId) => {'profile_id': profileId, 'bank_sampah_id': bsId})
+            .map((bsId) => {
+                  'profile_id': profileId,
+                  'bank_sampah_id': bsId,
+                })
             .toList();
         await SupabaseService.client
             .from(SupabaseConstants.tablePengelolaBankSampah)

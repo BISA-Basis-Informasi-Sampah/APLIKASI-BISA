@@ -51,9 +51,8 @@ class LaporanController extends GetxController {
           .from(SupabaseConstants.tableBankSampah)
           .select()
           .order('nama');
-      listBankSampah.value = (data as List)
-          .map((e) => BankSampahModel.fromJson(e))
-          .toList();
+      listBankSampah.value =
+          (data as List).map((e) => BankSampahModel.fromJson(e)).toList();
     } finally {
       isLoading.value = false;
     }

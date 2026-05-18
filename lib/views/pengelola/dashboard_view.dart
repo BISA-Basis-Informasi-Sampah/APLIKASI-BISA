@@ -70,8 +70,7 @@ class DashboardView extends GetView<DashboardController> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: EmptyState(
                         icon: Icons.inbox_outlined,
-                        message:
-                            'Belum ada data sampah.\nMulai input data sekarang!',
+                        message: 'Belum ada data sampah.\nMulai input data sekarang!',
                         actionLabel: 'Input Data',
                         onAction: () => Get.toNamed(AppRoutes.inputSampah),
                       ),
@@ -79,13 +78,16 @@ class DashboardView extends GetView<DashboardController> {
                   );
                 }
                 return SliverList(
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final item = controller.aktivitasTerbaru[index];
-                    return Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                      child: _AktivitasCard(item: item),
-                    );
-                  }, childCount: controller.aktivitasTerbaru.length),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final item = controller.aktivitasTerbaru[index];
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                        child: _AktivitasCard(item: item),
+                      );
+                    },
+                    childCount: controller.aktivitasTerbaru.length,
+                  ),
                 );
               }),
 
@@ -101,10 +103,7 @@ class DashboardView extends GetView<DashboardController> {
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.onPrimary,
         icon: const Icon(Icons.add_rounded),
-        label: Text(
-          'Input Data',
-          style: AppTextStyles.labelLg.copyWith(color: AppColors.onPrimary),
-        ),
+        label: Text('Input Data', style: AppTextStyles.labelLg.copyWith(color: AppColors.onPrimary)),
       ),
     );
   }
@@ -122,20 +121,14 @@ class DashboardView extends GetView<DashboardController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Obx(
-                  () => Text(
-                    controller.bankSampahNama,
-                    style: AppTextStyles.titleLg.copyWith(
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ),
-                Obx(
-                  () => Text(
-                    'Halo, ${controller.penggunaNama}',
-                    style: AppTextStyles.bodyMd,
-                  ),
-                ),
+                Obx(() => Text(
+                      controller.bankSampahNama,
+                      style: AppTextStyles.titleLg.copyWith(color: AppColors.primary),
+                    )),
+                Obx(() => Text(
+                      'Halo, ${controller.penggunaNama}',
+                      style: AppTextStyles.bodyMd,
+                    )),
               ],
             ),
           ),
@@ -274,13 +267,12 @@ class _StatCard extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 20),
           const SizedBox(height: 8),
-          Text(
-            value,
-            style: AppTextStyles.titleMd.copyWith(color: color),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          if (satuan.isNotEmpty) Text(satuan, style: AppTextStyles.labelSm),
+          Text(value,
+              style: AppTextStyles.titleMd.copyWith(color: color),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
+          if (satuan.isNotEmpty)
+            Text(satuan, style: AppTextStyles.labelSm),
           Text(label, style: AppTextStyles.labelSm, maxLines: 1),
         ],
       ),
@@ -308,13 +300,11 @@ class _QuickActionCard extends StatelessWidget {
         children: [
           Icon(icon, color: AppColors.primary, size: 26),
           const SizedBox(height: 6),
-          Text(
-            label,
-            style: AppTextStyles.labelSm,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+          Text(label,
+              style: AppTextStyles.labelSm,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
         ],
       ),
     );
@@ -338,11 +328,8 @@ class _AktivitasCard extends StatelessWidget {
               color: AppColors.secondaryContainer,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
             ),
-            child: const Icon(
-              Icons.recycling_rounded,
-              color: AppColors.onSecondaryContainer,
-              size: 22,
-            ),
+            child: const Icon(Icons.recycling_rounded,
+                color: AppColors.onSecondaryContainer, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -351,12 +338,9 @@ class _AktivitasCard extends StatelessWidget {
               children: [
                 Text(item.namaItem, style: AppTextStyles.titleMd),
                 Text(item.breadcrumb, style: AppTextStyles.bodyMd),
-                Text(
-                  FormatHelper.dateFromString(
-                    item.tanggalPengelolaan.toIso8601String(),
-                  ),
-                  style: AppTextStyles.labelSm,
-                ),
+                Text(FormatHelper.dateFromString(
+                    item.tanggalPengelolaan.toIso8601String()),
+                    style: AppTextStyles.labelSm),
               ],
             ),
           ),
@@ -364,16 +348,15 @@ class _AktivitasCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                FormatHelper.jumlahSatuan(item.jumlah, item.satuan?.singkatan),
-                style: AppTextStyles.titleMd.copyWith(color: AppColors.primary),
+                FormatHelper.jumlahSatuan(
+                    item.jumlah, item.satuan?.singkatan),
+                style: AppTextStyles.titleMd
+                    .copyWith(color: AppColors.primary),
               ),
               if (item.totalHarga != null && item.totalHarga! > 0)
-                Text(
-                  FormatHelper.currency(item.totalHarga),
-                  style: AppTextStyles.labelSm.copyWith(
-                    color: AppColors.secondary,
-                  ),
-                ),
+                Text(FormatHelper.currency(item.totalHarga),
+                    style: AppTextStyles.labelSm
+                        .copyWith(color: AppColors.secondary)),
             ],
           ),
         ],

@@ -38,9 +38,8 @@ class MonitoringController extends GetxController {
           .from(SupabaseConstants.tableBankSampah)
           .select()
           .order('nama');
-      listBankSampah.value = (data as List)
-          .map((e) => BankSampahModel.fromJson(e))
-          .toList();
+      listBankSampah.value =
+          (data as List).map((e) => BankSampahModel.fromJson(e)).toList();
     } catch (e) {
       Get.snackbar('Error', 'Gagal memuat data bank sampah.');
     } finally {
@@ -66,14 +65,8 @@ class MonitoringController extends GetxController {
             profiles(nama_lengkap)
           ''')
           .eq('bank_sampah_id', bankSampahId)
-          .gte(
-            'tanggal_pengelolaan',
-            firstDay.toIso8601String().split('T').first,
-          )
-          .lte(
-            'tanggal_pengelolaan',
-            lastDay.toIso8601String().split('T').first,
-          )
+          .gte('tanggal_pengelolaan', firstDay.toIso8601String().split('T').first)
+          .lte('tanggal_pengelolaan', lastDay.toIso8601String().split('T').first)
           .order('tanggal_pengelolaan', ascending: false);
 
       final list = (data as List)
@@ -82,8 +75,10 @@ class MonitoringController extends GetxController {
 
       detailTransaksi.value = list;
       statTransaksi.value = list.length;
-      statJumlah.value = list.fold(0.0, (sum, e) => sum + e.jumlah);
-      statNilai.value = list.fold(0.0, (sum, e) => sum + (e.totalHarga ?? 0.0));
+      statJumlah.value =
+          list.fold(0.0, (sum, e) => sum + e.jumlah);
+      statNilai.value =
+          list.fold(0.0, (sum, e) => sum + (e.totalHarga ?? 0.0));
     } catch (e) {
       Get.snackbar('Error', 'Gagal memuat detail bank sampah.');
     } finally {

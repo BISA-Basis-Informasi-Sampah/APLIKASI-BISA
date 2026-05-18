@@ -141,7 +141,7 @@ class InputSampahController extends GetxController {
                 .select('*, satuan(*)')
                 .eq('bank_sampah_id', bankSampahId)
                 .eq('sub_kategori_id', selectedSubKategori.value!.id)
-                .is_('jenis_sampah_id', null)
+                .isFilter('jenis_sampah_id', null)
                 .maybeSingle()
           : null;
 
@@ -151,8 +151,9 @@ class InputSampahController extends GetxController {
                 .select('*, satuan(*)')
                 .eq('bank_sampah_id', bankSampahId)
                 .eq('kategori_id', selectedKategori.value!.id)
-                .is_('sub_kategori_id', null)
-                .is_('jenis_sampah_id', null)
+                // Ganti .is_ menjadi .isFilter
+                .isFilter('sub_kategori_id', null)
+                .isFilter('jenis_sampah_id', null)
                 .maybeSingle()
           : null;
 
