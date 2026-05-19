@@ -174,12 +174,6 @@ class ProfilBankSampahView extends StatelessWidget {
             child: Column(
               children: [
                 _MenuTile(
-                  icon: Icons.sell_outlined,
-                  label: 'Kelola Harga Sampah',
-                  onTap: () => Get.toNamed(AppRoutes.hargaSampah),
-                ),
-                const Divider(height: 1),
-                _MenuTile(
                   icon: Icons.history_rounded,
                   label: 'Histori Pengelolaan',
                   onTap: () => Get.toNamed(AppRoutes.historiSampah),

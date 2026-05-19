@@ -27,13 +27,7 @@ class DetailBankSampahView extends GetView<MonitoringController> {
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Get.back(),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            onPressed: controller.refresh,
-            tooltip: 'Muat ulang',
-          ),
-        ],
+
       ),
       body: Obx(() {
         final bank = controller.selectedBankSampah.value;

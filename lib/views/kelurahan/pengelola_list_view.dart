@@ -26,16 +26,6 @@ class PengelolaListView extends GetView<PengelolaController> {
             icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () => Get.back(),
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.person_add_rounded),
-              onPressed: () {
-                controller.resetForm();
-                Get.toNamed(AppRoutes.formPengelola);
-              },
-              tooltip: 'Tambah Pengelola',
-            ),
-          ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(48),
             child: Obx(() {
@@ -90,6 +80,19 @@ class PengelolaListView extends GetView<PengelolaController> {
             ],
           );
         }),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () {
+            controller.resetForm();
+            Get.toNamed(AppRoutes.formPengelola);
+          },
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.onPrimary,
+          icon: const Icon(Icons.person_add_rounded),
+          label: Text(
+            'Tambah',
+            style: AppTextStyles.labelLg.copyWith(color: AppColors.onPrimary),
+          ),
+        ),
       ),
     );
   }
@@ -120,13 +123,14 @@ class _TabAktif extends StatelessWidget {
         onRefresh: controller.fetchAll,
         color: AppColors.primary,
         child: ListView.separated(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
           itemCount: controller.listPengelola.length,
           separatorBuilder: (_, __) => const SizedBox(height: 10),
           itemBuilder: (context, i) {
             final pengelola = controller.listPengelola[i];
             return _PengelolaCard(
               pengelola: pengelola,
+              controller: controller,
               onHapus: () => _confirmHapus(context, pengelola, controller),
               onAturBankSampah: () =>
                   _showAturBankSampahSheet(context, pengelola, controller),
@@ -184,17 +188,20 @@ class _PengelolaCard extends StatelessWidget {
   final ProfileModel pengelola;
   final VoidCallback onHapus;
   final VoidCallback onAturBankSampah;
+  final PengelolaController controller;
 
   const _PengelolaCard({
     required this.pengelola,
     required this.onHapus,
     required this.onAturBankSampah,
+    required this.controller,
   });
 
   @override
   Widget build(BuildContext context) {
     return AppCard(
       padding: const EdgeInsets.all(16),
+      onTap: () => _showInfoSheet(context, pengelola, controller),
       child: Row(
         children: [
           CircleAvatar(
@@ -237,45 +244,14 @@ class _PengelolaCard extends StatelessWidget {
               ],
             ),
           ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert_rounded, color: AppColors.outline),
-            onSelected: (v) {
-              if (v == 'atur') onAturBankSampah();
-              if (v == 'hapus') onHapus();
-            },
-            itemBuilder: (_) => [
-              const PopupMenuItem(
-                value: 'atur',
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.store_rounded,
-                      size: 18,
-                      color: AppColors.primary,
-                    ),
-                    SizedBox(width: 8),
-                    Text('Atur Bank Sampah'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'hapus',
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.delete_outline_rounded,
-                      size: 18,
-                      color: AppColors.error,
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      'Hapus Pengelola',
-                      style: TextStyle(color: AppColors.error),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          IconButton(
+            icon: const Icon(
+              Icons.delete_outline_rounded,
+              color: AppColors.error,
+              size: 22,
+            ),
+            onPressed: onHapus,
+            tooltip: 'Hapus Pengelola',
           ),
         ],
       ),
@@ -658,6 +634,142 @@ Future<void> _showAturBankSampahSheet(
         ),
       ),
     ),
+  );
+}
+
+// ── Info Sheet Pengelola ───────────────────────────────────────────────────────
+
+Future<void> _showInfoSheet(
+  BuildContext context,
+  ProfileModel pengelola,
+  PengelolaController controller,
+) async {
+  // fetch bank sampah yang dikelola
+  final ids = await controller.getBankSampahPengelola(pengelola.id);
+  final banks = controller.listBankSampah
+      .where((b) => ids.contains(b.id))
+      .toList();
+
+  if (!context.mounted) return;
+
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: AppColors.surfaceLowest,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (_) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // drag handle
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.outline.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: AppColors.primaryContainer.withOpacity(0.2),
+                  child: Text(
+                    pengelola.namaLengkap.isNotEmpty
+                        ? pengelola.namaLengkap[0].toUpperCase()
+                        : '?',
+                    style: AppTextStyles.titleLg.copyWith(
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(pengelola.namaLengkap, style: AppTextStyles.titleMd),
+                      if (pengelola.noHp != null && pengelola.noHp!.isNotEmpty)
+                        Text(
+                          pengelola.noHp!,
+                          style: AppTextStyles.bodyMd.copyWith(
+                            color: AppColors.onSurfaceVariant,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 12),
+            Text(
+              'Bank Sampah yang Dikelola',
+              style: AppTextStyles.labelSm.copyWith(
+                color: AppColors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (banks.isEmpty)
+              Text(
+                'Belum ada bank sampah yang dikelola.',
+                style: AppTextStyles.bodyMd,
+              )
+            else
+              ...banks.map(
+                (b) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.store_rounded,
+                          color: AppColors.primary,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(b.nama, style: AppTextStyles.titleMd),
+
+                            Text(
+                              [
+                                if (b.rt?.isNotEmpty ?? false) 'RT ${b.rt}',
+                                if (b.rw?.isNotEmpty ?? false) 'RW ${b.rw}',
+                              ].join(' / '),
+                              style: AppTextStyles.bodyMd.copyWith(
+                                color: AppColors.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    },
   );
 }
 

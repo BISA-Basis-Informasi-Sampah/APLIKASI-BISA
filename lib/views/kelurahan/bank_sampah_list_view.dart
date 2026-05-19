@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 
 import '../../app/routes/app_routes.dart';
@@ -14,6 +15,19 @@ class BankSampahListView extends GetView<BankSampahController> {
 
   @override
   Widget build(BuildContext context) {
+    final scrollController = ScrollController();
+    final isFabVisible = true.obs;
+
+    scrollController.addListener(() {
+      if (scrollController.position.userScrollDirection ==
+          ScrollDirection.reverse) {
+        if (isFabVisible.value) isFabVisible.value = false;
+      } else if (scrollController.position.userScrollDirection ==
+          ScrollDirection.forward) {
+        if (!isFabVisible.value) isFabVisible.value = true;
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -22,16 +36,6 @@ class BankSampahListView extends GetView<BankSampahController> {
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Get.back(),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_rounded),
-            onPressed: () {
-              controller.resetForm();
-              Get.toNamed(AppRoutes.formBankSampah);
-            },
-            tooltip: 'Tambah Bank Sampah',
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -80,6 +84,7 @@ class BankSampahListView extends GetView<BankSampahController> {
                 onRefresh: controller.fetchBankSampah,
                 color: AppColors.primary,
                 child: ListView.separated(
+                  controller: scrollController,
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
                   itemCount: controller.listBankFiltered.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -101,17 +106,27 @@ class BankSampahListView extends GetView<BankSampahController> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          controller.resetForm();
-          Get.toNamed(AppRoutes.formBankSampah);
-        },
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.onPrimary,
-        icon: const Icon(Icons.add_rounded),
-        label: Text(
-          'Tambah',
-          style: AppTextStyles.labelLg.copyWith(color: AppColors.onPrimary),
+      floatingActionButton: Obx(
+        () => AnimatedSlide(
+          duration: const Duration(milliseconds: 200),
+          offset: isFabVisible.value ? Offset.zero : const Offset(0, 2),
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 200),
+            opacity: isFabVisible.value ? 1.0 : 0.0,
+            child: FloatingActionButton.extended(
+              onPressed: () {
+                controller.resetForm();
+                Get.toNamed(AppRoutes.formBankSampah);
+              },
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.onPrimary,
+              icon: const Icon(Icons.add_rounded),
+              label: Text(
+                'Tambah',
+                style: AppTextStyles.labelLg.copyWith(color: AppColors.onPrimary),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -134,6 +149,7 @@ class _BankSampahCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
+      onTap: onEdit,
       child: Row(
         children: [
           Container(

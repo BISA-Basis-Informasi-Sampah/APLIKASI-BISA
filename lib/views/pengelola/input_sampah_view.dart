@@ -17,6 +17,10 @@ class InputSampahView extends GetView<InputSampahController> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        backgroundColor: AppColors.surfaceLowest,
+        foregroundColor: AppColors.onSurface,
+        elevation: 0,
+        scrolledUnderElevation: 1,
         title: Obx(
           () => Text(
             controller.isEditMode ? 'Edit Data Sampah' : 'Input Data Sampah',

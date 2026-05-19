@@ -30,7 +30,7 @@ class DashboardView extends GetView<DashboardController> {
               // Statistik cards
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                   child: Obx(() => _buildStatistikRow()),
                 ),
               ),
@@ -91,26 +91,17 @@ class DashboardView extends GetView<DashboardController> {
                 );
               }),
 
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              const SliverToBoxAdapter(child: SizedBox(height: 32)),
             ],
           ),
         ),
-      ),
-
-      // FAB input data
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Get.toNamed(AppRoutes.inputSampah),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.onPrimary,
-        icon: const Icon(Icons.add_rounded),
-        label: Text('Input Data', style: AppTextStyles.labelLg.copyWith(color: AppColors.onPrimary)),
       ),
     );
   }
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+      padding: const EdgeInsets.fromLTRB(16, 20, 8, 20),
       decoration: const BoxDecoration(
         color: AppColors.surfaceLowest,
         border: Border(bottom: BorderSide(color: AppColors.outlineVariant)),
@@ -271,8 +262,12 @@ class _StatCard extends StatelessWidget {
               style: AppTextStyles.titleMd.copyWith(color: color),
               maxLines: 1,
               overflow: TextOverflow.ellipsis),
-          if (satuan.isNotEmpty)
-            Text(satuan, style: AppTextStyles.labelSm),
+          // Selalu tampilkan baris satuan agar tinggi semua card sama
+          Text(
+            satuan.isNotEmpty ? satuan : '',
+            style: AppTextStyles.labelSm,
+            maxLines: 1,
+          ),
           Text(label, style: AppTextStyles.labelSm, maxLines: 1),
         ],
       ),

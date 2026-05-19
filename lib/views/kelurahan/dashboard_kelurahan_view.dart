@@ -29,7 +29,7 @@ class DashboardKelurahanView extends GetView<DashboardKelurahanController> {
               // Stat cards
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                   child: _buildStatGrid(),
                 ),
               ),
@@ -175,7 +175,7 @@ class DashboardKelurahanView extends GetView<DashboardKelurahanController> {
       crossAxisCount: 2,
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
-      childAspectRatio: 1.6,
+      childAspectRatio: 1.4,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       children: [
@@ -310,7 +310,7 @@ class _StatCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               if (satuan.isNotEmpty) Text(satuan, style: AppTextStyles.labelSm),
-              Text(label, style: AppTextStyles.labelSm, maxLines: 2),
+              Text(label, style: AppTextStyles.labelSm, maxLines: 2, overflow: TextOverflow.ellipsis),
             ],
           ),
         ],
