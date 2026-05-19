@@ -11,7 +11,7 @@ class AppRoutes {
   // Pengelola
   static const String dashboardPengelola = '/pengelola/dashboard';
   static const String inputSampah = '/pengelola/input-sampah';
-  static const String editSampah = '/pengelola/edit-sampah';
+  // editSampah DIHAPUS — edit dilakukan via inputSampah dengan arguments
   static const String historiSampah = '/pengelola/histori';
   static const String hargaSampah = '/pengelola/harga';
   static const String profilBankSampah = '/pengelola/profil';

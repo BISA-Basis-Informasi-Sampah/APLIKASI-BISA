@@ -22,15 +22,27 @@ class DashboardController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // FIX: guard jika bank sampah belum dipilih
+    if (SessionService.to.activeBankSampahIdOrNull == null) {
+      Get.offAllNamed(AppRoutes.pilihBankSampah);
+      return;
+    }
     fetchDashboardData();
   }
 
   Future<void> fetchDashboardData() async {
+    // FIX: guard sebelum fetch
+    final bankSampahId = SessionService.to.activeBankSampahIdOrNull;
+    if (bankSampahId == null) {
+      Get.offAllNamed(AppRoutes.pilihBankSampah);
+      return;
+    }
+
     isLoading.value = true;
     try {
       await Future.wait([
-        _fetchAktivitasTerbaru(),
-        _fetchStatistikBulanIni(),
+        _fetchAktivitasTerbaru(bankSampahId),
+        _fetchStatistikBulanIni(bankSampahId),
       ]);
     } catch (e) {
       Get.snackbar('Error', 'Gagal memuat data dashboard.');
@@ -39,9 +51,7 @@ class DashboardController extends GetxController {
     }
   }
 
-  Future<void> _fetchAktivitasTerbaru() async {
-    final bankSampahId = SessionService.to.activeBankSampahId;
-
+  Future<void> _fetchAktivitasTerbaru(String bankSampahId) async {
     final data = await SupabaseService.client
         .from(SupabaseConstants.tablePengelolaanSampah)
         .select('''
@@ -60,8 +70,7 @@ class DashboardController extends GetxController {
         .toList();
   }
 
-  Future<void> _fetchStatistikBulanIni() async {
-    final bankSampahId = SessionService.to.activeBankSampahId;
+  Future<void> _fetchStatistikBulanIni(String bankSampahId) async {
     final now = DateTime.now();
     final firstDay = DateTime(now.year, now.month, 1);
     final lastDay = DateTime(now.year, now.month + 1, 0);
@@ -70,8 +79,10 @@ class DashboardController extends GetxController {
         .from(SupabaseConstants.tablePengelolaanSampah)
         .select('jumlah, total_harga')
         .eq('bank_sampah_id', bankSampahId)
-        .gte('tanggal_pengelolaan', firstDay.toIso8601String().split('T').first)
-        .lte('tanggal_pengelolaan', lastDay.toIso8601String().split('T').first);
+        .gte('tanggal_pengelolaan',
+            firstDay.toIso8601String().split('T').first)
+        .lte('tanggal_pengelolaan',
+            lastDay.toIso8601String().split('T').first);
 
     final list = data as List;
     totalTransaksiBulanIni.value = list.length;

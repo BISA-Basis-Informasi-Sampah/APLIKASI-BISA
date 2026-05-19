@@ -22,13 +22,11 @@ class HistoriController extends GetxController {
   final filterTanggalMulai = Rx<DateTime?>(null);
   final filterTanggalAkhir = Rx<DateTime?>(null);
 
-  // Getter: apakah ada filter aktif
   bool get isFilterActive =>
       filterKategoriId.value.isNotEmpty ||
       filterTanggalMulai.value != null ||
       filterTanggalAkhir.value != null;
 
-  // Getter: total nilai semua histori yang ditampilkan
   double get totalNilai =>
       listHistori.fold(0.0, (sum, e) => sum + (e.totalHarga ?? 0.0));
 
@@ -39,9 +37,7 @@ class HistoriController extends GetxController {
     _fetchKategori();
   }
 
-  void onSearch(String value) {
-    searchQuery.value = value;
-  }
+  void onSearch(String value) => searchQuery.value = value;
 
   void clearSearch() {
     searchController.clear();
@@ -49,10 +45,15 @@ class HistoriController extends GetxController {
   }
 
   Future<void> fetchHistori() async {
+    // FIX: guard jika bank sampah belum dipilih
+    final bankSampahId = SessionService.to.activeBankSampahIdOrNull;
+    if (bankSampahId == null) {
+      Get.offAllNamed(AppRoutes.pilihBankSampah);
+      return;
+    }
+
     isLoading.value = true;
     try {
-      final bankSampahId = SessionService.to.activeBankSampahId;
-
       var query = SupabaseService.client
           .from(SupabaseConstants.tablePengelolaanSampah)
           .select('''
@@ -67,14 +68,12 @@ class HistoriController extends GetxController {
       if (filterKategoriId.value.isNotEmpty) {
         query = query.eq('kategori_id', filterKategoriId.value);
       }
-
       if (filterTanggalMulai.value != null) {
         query = query.gte(
           'tanggal_pengelolaan',
           filterTanggalMulai.value!.toIso8601String().split('T').first,
         );
       }
-
       if (filterTanggalAkhir.value != null) {
         query = query.lte(
           'tanggal_pengelolaan',
@@ -89,7 +88,6 @@ class HistoriController extends GetxController {
           .map((e) => PengelolaanSampahModel.fromJson(e))
           .toList();
 
-      // Filter search query di client side
       if (searchQuery.value.isNotEmpty) {
         final q = searchQuery.value.toLowerCase();
         list = list.where((item) {
@@ -139,9 +137,7 @@ class HistoriController extends GetxController {
     if (picked != null) filterTanggalAkhir.value = picked;
   }
 
-  void applyFilter() {
-    fetchHistori();
-  }
+  void applyFilter() => fetchHistori();
 
   void resetFilter() {
     filterKategoriId.value = '';
@@ -152,13 +148,11 @@ class HistoriController extends GetxController {
     fetchHistori();
   }
 
-  // Dipanggil dari card histori — navigate ke input_sampah dengan mode edit
   Future<void> editItem(PengelolaanSampahModel data) async {
     final result = await Get.toNamed(AppRoutes.inputSampah, arguments: data);
     if (result == true) fetchHistori();
   }
 
-  // Dipanggil dari card histori — hapus data
   Future<void> deleteItem(PengelolaanSampahModel data) async {
     final confirm = await Get.dialog<bool>(
       AlertDialog(
@@ -171,10 +165,8 @@ class HistoriController extends GetxController {
           ),
           TextButton(
             onPressed: () => Get.back(result: true),
-            child: const Text(
-              'Hapus',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text('Hapus',
+                style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

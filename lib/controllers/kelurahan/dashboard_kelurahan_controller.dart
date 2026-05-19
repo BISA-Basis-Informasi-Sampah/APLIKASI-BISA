@@ -29,8 +29,10 @@ class DashboardKelurahanController extends GetxController {
   String get penggunaNama =>
       SessionService.to.profile.value?.namaLengkap ?? '-';
 
-  String get namaKelurahan =>
-      SessionService.to.profile.value?.namaLengkap ?? 'Kelurahan';
+  // FIX: namaKelurahan tidak lagi sama dengan namaLengkap pengguna.
+  // Jika ingin nama kelurahan yang sesungguhnya, tambahkan kolom
+  // nama_kelurahan di tabel profiles dan ambil dari sana.
+  String get namaKelurahan => 'Kelurahan';
 
   @override
   void onInit() {

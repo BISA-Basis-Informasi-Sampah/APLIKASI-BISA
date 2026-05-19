@@ -9,35 +9,32 @@ import '../../models/kategori_model.dart';
 import '../../models/sub_kategori_model.dart';
 import '../../models/jenis_sampah_model.dart';
 import '../../models/satuan_model.dart';
+import '../../app/routes/app_routes.dart';
 
 class HargaController extends GetxController {
   final formKey = GlobalKey<FormState>();
   final hargaController = TextEditingController();
 
-  // Data list
   final listHarga = <HargaSampahModel>[].obs;
   final listKategori = <KategoriModel>[].obs;
   final listSubKategori = <SubKategoriModel>[].obs;
   final listJenisSampah = <JenisSampahModel>[].obs;
   final listSatuan = <SatuanModel>[].obs;
 
-  // State dropdown — pakai String ID agar mudah di-bind ke view
   final selectedKategoriId = ''.obs;
   final selectedSubKategoriId = ''.obs;
   final selectedJenisId = ''.obs;
   final selectedSatuanId = ''.obs;
 
-  // Loading state
   final isLoading = false.obs;
   final isSaving = false.obs;
 
-  // Edit mode
   HargaSampahModel? _editData;
   bool get isEditMode => _editData != null;
 
-  String get bankSampahId => SessionService.to.activeBankSampahId;
+  // FIX: gunakan getter yang bisa null agar bisa di-guard
+  String? get _bankSampahId => SessionService.to.activeBankSampahIdOrNull;
 
-  // Harga dikelompokkan per nama kategori — untuk tampilan list di view
   Map<String, List<HargaSampahModel>> get hargaPerKategori {
     final Map<String, List<HargaSampahModel>> result = {};
     for (final h in listHarga) {
@@ -50,6 +47,11 @@ class HargaController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // FIX: guard jika bank sampah belum dipilih
+    if (_bankSampahId == null) {
+      Get.offAllNamed(AppRoutes.pilihBankSampah);
+      return;
+    }
     fetchAll();
     ever(selectedKategoriId, (_) => _onKategoriChanged());
     ever(selectedSubKategoriId, (_) => _onSubKategoriChanged());
@@ -65,11 +67,13 @@ class HargaController extends GetxController {
   }
 
   Future<void> fetchHarga() async {
+    final id = _bankSampahId;
+    if (id == null) return;
     final data = await SupabaseService.client
         .from(SupabaseConstants.tableHargaSampah)
         .select(
             '*, kategori_sampah(*), sub_kategori_sampah(*), jenis_sampah(*), satuan(*)')
-        .eq('bank_sampah_id', bankSampahId)
+        .eq('bank_sampah_id', id)
         .order('updated_at', ascending: false);
     listHarga.value =
         (data as List).map((e) => HargaSampahModel.fromJson(e)).toList();
@@ -134,13 +138,9 @@ class HargaController extends GetxController {
     }
   }
 
-  void onKategoriChanged(String? id) {
-    selectedKategoriId.value = id ?? '';
-  }
-
-  void onSubKategoriChanged(String? id) {
-    selectedSubKategoriId.value = id ?? '';
-  }
+  void onKategoriChanged(String? id) => selectedKategoriId.value = id ?? '';
+  void onSubKategoriChanged(String? id) =>
+      selectedSubKategoriId.value = id ?? '';
 
   void resetForm() {
     formKey.currentState?.reset();
@@ -162,7 +162,6 @@ class HargaController extends GetxController {
     selectedJenisId.value = data.jenisSampahId ?? '';
     selectedSatuanId.value = data.satuanId;
 
-    // Muat dropdown turunan
     if (data.kategoriId != null) {
       _fetchSubKategori(data.kategoriId!).then((_) {
         if (data.subKategoriId != null) {
@@ -183,13 +182,20 @@ class HargaController extends GetxController {
       return;
     }
 
+    final id = _bankSampahId;
+    if (id == null) {
+      Get.offAllNamed(AppRoutes.pilihBankSampah);
+      return;
+    }
+
     isSaving.value = true;
     try {
       final payload = {
-        'bank_sampah_id': bankSampahId,
+        'bank_sampah_id': id,
         'kategori_id': selectedKategoriId.value,
-        'sub_kategori_id':
-            selectedSubKategoriId.value.isEmpty ? null : selectedSubKategoriId.value,
+        'sub_kategori_id': selectedSubKategoriId.value.isEmpty
+            ? null
+            : selectedSubKategoriId.value,
         'jenis_sampah_id':
             selectedJenisId.value.isEmpty ? null : selectedJenisId.value,
         'harga_per_satuan': double.parse(hargaController.text.trim()),

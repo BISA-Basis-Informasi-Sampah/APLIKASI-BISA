@@ -58,7 +58,6 @@ class PilihBankSampahView extends GetView<SessionController> {
                     ],
                   ),
                   const Spacer(),
-                  // Logout
                   IconButton(
                     icon: const Icon(
                       Icons.logout_rounded,
@@ -189,8 +188,9 @@ class _BankSampahCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              StatusChip.active(),
-              if (!bank.isActive) StatusChip.inactive(),
+              // FIX: sebelumnya selalu tampil StatusChip.active() sehingga
+              // bank nonaktif menampilkan dua chip sekaligus.
+              bank.isActive ? StatusChip.active() : StatusChip.inactive(),
               const SizedBox(height: 4),
               const Icon(
                 Icons.chevron_right_rounded,
