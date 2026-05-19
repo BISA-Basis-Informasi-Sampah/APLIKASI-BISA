@@ -23,8 +23,8 @@ class BankSampahController extends GetxController {
   final isSaving = false.obs;
   final isAktif = true.obs;
 
-  BankSampahModel? editData;
-  bool get isEditMode => editData != null;
+  final editData = Rx<BankSampahModel?>(null);
+  bool get isEditMode => editData.value != null;
 
   // Getter list yang sudah difilter berdasarkan search
   List<BankSampahModel> get listBankFiltered {
@@ -60,8 +60,9 @@ class BankSampahController extends GetxController {
           .from(SupabaseConstants.tableBankSampah)
           .select()
           .order('nama');
-      listBankSampah.value =
-          (data as List).map((e) => BankSampahModel.fromJson(e)).toList();
+      listBankSampah.value = (data as List)
+          .map((e) => BankSampahModel.fromJson(e))
+          .toList();
     } catch (e) {
       Get.snackbar('Error', 'Gagal memuat daftar bank sampah.');
     } finally {
@@ -77,7 +78,9 @@ class BankSampahController extends GetxController {
           .eq('bank_sampah_id', bankSampahId);
 
       listPengelolaTerhubung.value = (data as List)
-          .map((e) => ProfileModel.fromJson(e['profiles'] as Map<String, dynamic>))
+          .map(
+            (e) => ProfileModel.fromJson(e['profiles'] as Map<String, dynamic>),
+          )
           .toList();
     } catch (e) {
       listPengelolaTerhubung.clear();
@@ -86,21 +89,21 @@ class BankSampahController extends GetxController {
 
   // Dipanggil dari list view saat tombol edit ditekan
   void initEdit(BankSampahModel data) {
-    editData = data;
+    editData.value = data;
     _populateForm();
     _fetchPengelolaTerhubung(data.id);
   }
 
   void _populateForm() {
-    namaController.text = editData!.nama;
-    alamatController.text = editData!.alamat ?? '';
-    rtController.text = editData!.rt ?? '';
-    rwController.text = editData!.rw ?? '';
-    isAktif.value = editData!.isActive;
+    namaController.text = editData.value!.nama;
+    alamatController.text = editData.value!.alamat ?? '';
+    rtController.text = editData.value!.rt ?? '';
+    rwController.text = editData.value!.rw ?? '';
+    isAktif.value = editData.value!.isActive;
   }
 
   void resetForm() {
-    editData = null;
+    editData.value = null;
     listPengelolaTerhubung.clear();
     formKey.currentState?.reset();
     namaController.clear();
@@ -136,7 +139,7 @@ class BankSampahController extends GetxController {
         await SupabaseService.client
             .from(SupabaseConstants.tableBankSampah)
             .update(payload)
-            .eq('id', editData!.id);
+            .eq('id', editData.value!.id);
         Get.back(result: true);
         Get.snackbar('Berhasil', 'Bank sampah berhasil diperbarui.');
       } else {
@@ -160,7 +163,8 @@ class BankSampahController extends GetxController {
       AlertDialog(
         title: const Text('Hapus Bank Sampah'),
         content: Text(
-            'Yakin ingin menghapus "${bank.nama}"? Semua data terkait akan ikut terhapus.'),
+          'Yakin ingin menghapus "${bank.nama}"? Semua data terkait akan ikut terhapus.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Get.back(result: false),
@@ -168,8 +172,7 @@ class BankSampahController extends GetxController {
           ),
           TextButton(
             onPressed: () => Get.back(result: true),
-            child:
-                const Text('Hapus', style: TextStyle(color: Colors.red)),
+            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -192,7 +195,8 @@ class BankSampahController extends GetxController {
     try {
       await SupabaseService.client
           .from(SupabaseConstants.tableBankSampah)
-          .update({'is_active': !b.isActive}).eq('id', b.id);
+          .update({'is_active': !b.isActive})
+          .eq('id', b.id);
       await fetchBankSampah();
     } catch (e) {
       Get.snackbar('Gagal', 'Gagal mengubah status.');
@@ -200,12 +204,12 @@ class BankSampahController extends GetxController {
   }
 
   Future<void> lepaskanPengelola(ProfileModel pengelola) async {
-    if (editData == null) return;
+    if (editData.value == null) return;
     try {
       await SupabaseService.client
           .from(SupabaseConstants.tablePengelolaBankSampah)
           .delete()
-          .eq('bank_sampah_id', editData!.id)
+          .eq('bank_sampah_id', editData.value!.id)
           .eq('profile_id', pengelola.id);
       listPengelolaTerhubung.removeWhere((p) => p.id == pengelola.id);
       Get.snackbar('Berhasil', 'Pengelola berhasil dilepas.');

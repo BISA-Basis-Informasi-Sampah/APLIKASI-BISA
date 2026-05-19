@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'app/routes/app_pages.dart';
 import 'app/routes/app_routes.dart';
 import 'app/themes/app_theme.dart';
 import 'core/constants/supabase_constants.dart';
 import 'core/services/session_service.dart';
+import 'controllers/auth_controller.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await initializeDateFormatting('id_ID', null);
 
   await dotenv.load(fileName: ".env");
 
@@ -21,6 +25,7 @@ Future<void> main() async {
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
 
   await Get.putAsync(() async => SessionService());
+  Get.put(AuthController(), permanent: true);
   runApp(const BisaApp());
 }
 

@@ -15,6 +15,7 @@ import '../../controllers/kelurahan/laporan_controller.dart';
 
 import '../../views/auth/login_view.dart';
 import '../../views/auth/register_view.dart';
+import '../../views/auth/menunggu_verifikasi_view.dart';
 import '../../views/pilih_bank_sampah/pilih_bank_sampah_view.dart';
 import '../../views/pengelola/dashboard_view.dart';
 import '../../views/pengelola/input_sampah_view.dart';
@@ -46,9 +47,11 @@ class AppPages {
         Get.lazyPut(() => AuthController());
       }),
     ),
+    GetPage(name: AppRoutes.register, page: () => const RegisterView()),
     GetPage(
-      name: AppRoutes.register,
-      page: () => const RegisterView(),
+      name: AppRoutes.menungguVerifikasi,
+      page: () => const MenungguVerifikasiView(),
+      // AuthController dibutuhkan untuk fungsi logout
       binding: BindingsBuilder(() {
         Get.lazyPut(() => AuthController());
       }),

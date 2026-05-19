@@ -102,12 +102,10 @@ class ProfilKelurahanView extends StatelessWidget {
                   ),
                 ),
                 const Divider(height: 1, indent: 54),
-                Obx(
-                  () => _InfoRow(
-                    icon: Icons.people_outline_rounded,
-                    label: 'Role',
-                    value: 'Kelurahan',
-                  ),
+                _InfoRow(
+                  icon: Icons.people_outline_rounded,
+                  label: 'Role',
+                  value: 'Kelurahan',
                 ),
                 const Divider(height: 1, indent: 54),
                 Obx(
@@ -172,20 +170,20 @@ class ProfilKelurahanView extends StatelessWidget {
   }
 
   void _confirmLogout(BuildContext context) async {
-  final ok = await ConfirmDialog.show(
-    title: 'Keluar',
-    message: 'Yakin ingin keluar dari akun?',
-    confirmLabel: 'Keluar',
-    cancelLabel: 'Batal',
-    isDanger: true,
-  );
-  if (ok) {
-    // Gunakan AuthController.logout() agar auth.signOut() ikut dipanggil
-    Get.find<AuthController>().logout();
-    // JANGAN pakai manual clearSession + navigate karena
-    // token Supabase masih aktif di memory
+    final ok = await ConfirmDialog.show(
+      title: 'Keluar',
+      message: 'Yakin ingin keluar dari akun?',
+      confirmLabel: 'Keluar',
+      cancelLabel: 'Batal',
+      isDanger: true,
+    );
+    if (ok) {
+      // Gunakan AuthController.logout() agar auth.signOut() ikut dipanggil
+      Get.find<AuthController>().logout();
+      // JANGAN pakai manual clearSession + navigate karena
+      // token Supabase masih aktif di memory
+    }
   }
-}
 }
 
 // ── Sub-widgets ──────────────────────────────────────────────────────────────

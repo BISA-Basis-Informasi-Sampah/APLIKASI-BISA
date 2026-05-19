@@ -6,6 +6,7 @@ import '../core/services/supabase_service.dart';
 import '../core/services/session_service.dart';
 import '../core/constants/supabase_constants.dart';
 import '../models/profile_model.dart';
+import '../models/bank_sampah_model.dart';
 import '../app/routes/app_routes.dart';
 
 class AuthController extends GetxController {
@@ -26,14 +27,42 @@ class AuthController extends GetxController {
 
   // State
   final isLoading = false.obs;
+  final isLoadingBankSampah = false.obs;
   final isPasswordVisible = false.obs;
   final isConfirmPasswordVisible = false.obs;
+
+  // Daftar bank sampah untuk pilihan saat registrasi
+  final listBankSampahRegister = <BankSampahModel>[].obs;
+  final selectedBankSampahRegister = <String>[].obs;
 
   void togglePasswordVisibility() =>
       isPasswordVisible.value = !isPasswordVisible.value;
 
   void toggleConfirmPasswordVisibility() =>
       isConfirmPasswordVisible.value = !isConfirmPasswordVisible.value;
+
+  // ─── Fetch bank sampah untuk form registrasi ─────────────────────────────────
+  // Dipanggil saat halaman register dibuka (onInit RegisterView tidak ada,
+  // jadi panggil dari initState atau didChangeDependencies via StatefulWidget,
+  // atau bisa juga dipanggil langsung dari build pertama kali).
+  Future<void> fetchBankSampahUntukRegister() async {
+    if (listBankSampahRegister.isNotEmpty) return; // sudah dimuat
+    isLoadingBankSampah.value = true;
+    try {
+      final data = await SupabaseService.client
+          .from(SupabaseConstants.tableBankSampah)
+          .select()
+          .eq('is_active', true)
+          .order('nama');
+      listBankSampahRegister.value = (data as List)
+          .map((e) => BankSampahModel.fromJson(e))
+          .toList();
+    } catch (_) {
+      // Gagal muat bank sampah tidak fatal — user tetap bisa daftar
+    } finally {
+      isLoadingBankSampah.value = false;
+    }
+  }
 
   // ─── Login ──────────────────────────────────────────────────────────────────
   Future<void> login() async {
@@ -63,50 +92,60 @@ class AuthController extends GetxController {
 
   // ─── Register ────────────────────────────────────────────────────────────────
   Future<void> register() async {
-  if (!registerFormKey.currentState!.validate()) return;
- 
-  isLoading.value = true;
-  try {
-    final response = await SupabaseService.client.auth.signUp(
-      email: regEmailController.text.trim(),
-      password: regPasswordController.text,
-    );
- 
-    if (response.user == null) {
-      _showError('Registrasi gagal. Coba lagi.');
-      return;
-    }
- 
+    if (!registerFormKey.currentState!.validate()) return;
+
+    isLoading.value = true;
     try {
-      // Insert profil — jika gagal, hapus akun auth yang baru dibuat
-      await SupabaseService.client
-          .from(SupabaseConstants.tableProfiles)
-          .insert({
-            'auth_user_id': response.user!.id,
-            'nama_lengkap': regNamaController.text.trim(),
-            'no_hp': regNoHpController.text.trim().isEmpty
-                ? null
-                : regNoHpController.text.trim(),
-            'role': 'pengelola',
-          });
-    } catch (profileError) {
-      // Rollback: hapus akun auth karena profil gagal dibuat
-      // Ini butuh Edge Function atau signOut agar tidak ada akun
-      // auth tanpa profil
-      await SupabaseService.client.auth.signOut();
-      _showError('Registrasi gagal. Silakan coba lagi.');
-      return;
+      final response = await SupabaseService.client.auth.signUp(
+        email: regEmailController.text.trim(),
+        password: regPasswordController.text,
+      );
+
+      if (response.user == null) {
+        _showError('Registrasi gagal. Coba lagi.');
+        return;
+      }
+
+      final userId = response.user!.id;
+
+      try {
+        final inserted = await SupabaseService.client
+            .from(SupabaseConstants.tableProfiles)
+            .insert({
+              'auth_user_id': userId,
+              'nama_lengkap': regNamaController.text.trim(),
+              'no_hp': regNoHpController.text.trim().isEmpty
+                  ? null
+                  : regNoHpController.text.trim(),
+              'role': 'pengelola',
+              'is_verified': false,
+              // Simpan pilihan bank sampah sebagai referensi untuk kelurahan
+              'bank_sampah_pilihan': selectedBankSampahRegister.toList(),
+            })
+            .select()
+            .single();
+
+        final profile = ProfileModel.fromJson(inserted);
+        SessionService.to.setProfile(profile);
+      } on PostgrestException catch (e) {
+        await SupabaseService.client.auth.signOut();
+        _showError('Gagal simpan profil: [${e.code}] ${e.message}');
+        return;
+      } catch (profileError) {
+        await SupabaseService.client.auth.signOut();
+        _showError('Gagal simpan profil: $profileError');
+        return;
+      }
+
+      Get.offAllNamed(AppRoutes.menungguVerifikasi);
+    } on AuthException catch (e) {
+      _showError(_mapAuthError(e.message));
+    } catch (e) {
+      _showError('Registrasi gagal. Periksa koneksi internet kamu.');
+    } finally {
+      isLoading.value = false;
     }
- 
-    await _loadProfileAndNavigate(response.user!.id);
-  } on AuthException catch (e) {
-    _showError(_mapAuthError(e.message));
-  } catch (e) {
-    _showError('Registrasi gagal. Periksa koneksi internet kamu.');
-  } finally {
-    isLoading.value = false;
   }
-}
 
   // ─── Logout ──────────────────────────────────────────────────────────────────
   Future<void> logout() async {
@@ -122,7 +161,7 @@ class AuthController extends GetxController {
     }
   }
 
-  // ─── Load profile & navigasi sesuai role ─────────────────────────────────────
+  // ─── Load profile & navigasi sesuai role & status verifikasi ─────────────────
   Future<void> _loadProfileAndNavigate(String authUserId) async {
     final data = await SupabaseService.client
         .from(SupabaseConstants.tableProfiles)
@@ -135,6 +174,8 @@ class AuthController extends GetxController {
 
     if (profile.isKelurahan) {
       Get.offAllNamed(AppRoutes.dashboardKelurahan);
+    } else if (!profile.isVerified) {
+      Get.offAllNamed(AppRoutes.menungguVerifikasi);
     } else {
       Get.offAllNamed(AppRoutes.pilihBankSampah);
     }

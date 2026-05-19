@@ -30,7 +30,7 @@ class DashboardKelurahanView extends GetView<DashboardKelurahanController> {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                  child: Obx(() => _buildStatGrid()),
+                  child: _buildStatGrid(),
                 ),
               ),
 
@@ -75,16 +75,13 @@ class DashboardKelurahanView extends GetView<DashboardKelurahanController> {
                   );
                 }
                 return SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final item = controller.aktivitasTerbaru[index];
-                      return Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                        child: _AktivitasKelurahanCard(item: item),
-                      );
-                    },
-                    childCount: controller.aktivitasTerbaru.length,
-                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final item = controller.aktivitasTerbaru[index];
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                      child: _AktivitasKelurahanCard(item: item),
+                    );
+                  }, childCount: controller.aktivitasTerbaru.length),
                 );
               }),
 
@@ -118,26 +115,37 @@ class DashboardKelurahanView extends GetView<DashboardKelurahanController> {
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 ),
-                child: const Icon(Icons.eco_rounded,
-                    color: Colors.white, size: 24),
+                child: const Icon(
+                  Icons.eco_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('BISA',
-                        style: AppTextStyles.titleLg
-                            .copyWith(color: Colors.white)),
-                    Text('Dashboard Kelurahan',
-                        style: AppTextStyles.labelSm
-                            .copyWith(color: Colors.white70)),
+                    Text(
+                      'BISA',
+                      style: AppTextStyles.titleLg.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      'Dashboard Kelurahan',
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: Colors.white70,
+                      ),
+                    ),
                   ],
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.person_outline_rounded,
-                    color: Colors.white),
+                icon: const Icon(
+                  Icons.person_outline_rounded,
+                  color: Colors.white,
+                ),
                 onPressed: () => Get.toNamed(AppRoutes.profilKelurahan),
                 tooltip: 'Profil',
               ),
@@ -149,16 +157,14 @@ class DashboardKelurahanView extends GetView<DashboardKelurahanController> {
             ],
           ),
           const SizedBox(height: 16),
-          Obx(() => Text(
-                'Selamat datang, ${controller.penggunaNama}',
-                style: AppTextStyles.bodyMd
-                    .copyWith(color: Colors.white70),
-              )),
-          Obx(() => Text(
-                controller.namaKelurahan,
-                style: AppTextStyles.headlineMd
-                    .copyWith(color: Colors.white),
-              )),
+          Text(
+            'Selamat datang, ${controller.penggunaNama}',
+            style: AppTextStyles.bodyMd.copyWith(color: Colors.white70),
+          ),
+          Text(
+            controller.namaKelurahan,
+            style: AppTextStyles.headlineMd.copyWith(color: Colors.white),
+          ),
         ],
       ),
     );
@@ -173,33 +179,41 @@ class DashboardKelurahanView extends GetView<DashboardKelurahanController> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       children: [
-        _StatCard(
-          label: 'Total Sampah\nBulan Ini',
-          value: FormatHelper.number(controller.totalSampahBulanIni),
-          satuan: 'kg',
-          icon: Icons.scale_outlined,
-          color: AppColors.primary,
+        Obx(
+          () => _StatCard(
+            label: 'Total Sampah\nBulan Ini',
+            value: FormatHelper.number(controller.totalJumlahBulanIni.value),
+            satuan: 'kg',
+            icon: Icons.scale_outlined,
+            color: AppColors.primary,
+          ),
         ),
-        _StatCard(
-          label: 'Bank Sampah\nAktif',
-          value: controller.jumlahBankAktif.toString(),
-          satuan: 'unit',
-          icon: Icons.store_rounded,
-          color: AppColors.secondary,
+        Obx(
+          () => _StatCard(
+            label: 'Bank Sampah\nAktif',
+            value: controller.totalBankSampahAktif.value.toString(),
+            satuan: 'unit',
+            icon: Icons.store_rounded,
+            color: AppColors.secondary,
+          ),
         ),
-        _StatCard(
-          label: 'Total Transaksi\nBulan Ini',
-          value: controller.totalTransaksiBulanIni.value.toString(),
-          satuan: 'entri',
-          icon: Icons.receipt_long_outlined,
-          color: AppColors.info,
+        Obx(
+          () => _StatCard(
+            label: 'Total Transaksi\nBulan Ini',
+            value: controller.totalTransaksiBulanIni.value.toString(),
+            satuan: 'entri',
+            icon: Icons.receipt_long_outlined,
+            color: AppColors.info,
+          ),
         ),
-        _StatCard(
-          label: 'Nilai Total\nBulan Ini',
-          value: FormatHelper.currency(controller.totalNilaiBulanIni.value),
-          satuan: '',
-          icon: Icons.payments_outlined,
-          color: AppColors.warning,
+        Obx(
+          () => _StatCard(
+            label: 'Nilai Total\nBulan Ini',
+            value: FormatHelper.currency(controller.totalNilaiBulanIni.value),
+            satuan: '',
+            icon: Icons.payments_outlined,
+            color: AppColors.warning,
+          ),
         ),
       ],
     );
@@ -289,15 +303,14 @@ class _StatCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(value,
-                  style: AppTextStyles.titleMd.copyWith(color: color),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis),
-              if (satuan.isNotEmpty)
-                Text(satuan, style: AppTextStyles.labelSm),
-              Text(label,
-                  style: AppTextStyles.labelSm,
-                  maxLines: 2),
+              Text(
+                value,
+                style: AppTextStyles.titleMd.copyWith(color: color),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (satuan.isNotEmpty) Text(satuan, style: AppTextStyles.labelSm),
+              Text(label, style: AppTextStyles.labelSm, maxLines: 2),
             ],
           ),
         ],
@@ -335,10 +348,12 @@ class _MenuCard extends StatelessWidget {
             child: Icon(icon, color: AppColors.onPrimaryContainer, size: 22),
           ),
           const SizedBox(height: 8),
-          Text(label,
-              style: AppTextStyles.labelSm,
-              textAlign: TextAlign.center,
-              maxLines: 2),
+          Text(
+            label,
+            style: AppTextStyles.labelSm,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+          ),
         ],
       ),
     );
@@ -362,18 +377,19 @@ class _AktivitasKelurahanCard extends StatelessWidget {
               color: AppColors.secondaryContainer,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
             ),
-            child: const Icon(Icons.store_rounded,
-                color: AppColors.onSecondaryContainer, size: 20),
+            child: const Icon(
+              Icons.store_rounded,
+              color: AppColors.onSecondaryContainer,
+              size: 20,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item['bank_nama'] ?? '-',
-                    style: AppTextStyles.titleMd),
-                Text(item['jenis_nama'] ?? '-',
-                    style: AppTextStyles.bodyMd),
+                Text(item['bank_nama'] ?? '-', style: AppTextStyles.titleMd),
+                Text(item['jenis_nama'] ?? '-', style: AppTextStyles.bodyMd),
                 Text(
                   FormatHelper.dateFromString(item['tanggal'] ?? ''),
                   style: AppTextStyles.labelSm,
@@ -382,10 +398,8 @@ class _AktivitasKelurahanCard extends StatelessWidget {
             ),
           ),
           Text(
-            FormatHelper.jumlahSatuan(
-                item['jumlah'], item['satuan_singkatan']),
-            style:
-                AppTextStyles.titleMd.copyWith(color: AppColors.primary),
+            FormatHelper.jumlahSatuan(item['jumlah'], item['satuan_singkatan']),
+            style: AppTextStyles.titleMd.copyWith(color: AppColors.primary),
           ),
         ],
       ),

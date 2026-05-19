@@ -111,8 +111,7 @@ void _showAddSheet(
   required VoidCallback onSimpan,
   required MasterSampahController controller,
 }) {
-  showModalBottomSheet(
-    context: context,
+  Get.bottomSheet(
     isScrollControlled: true,
     backgroundColor: AppColors.surfaceLowest,
     shape: const RoundedRectangleBorder(
@@ -120,7 +119,7 @@ void _showAddSheet(
         top: Radius.circular(AppTheme.radiusXl),
       ),
     ),
-    builder: (_) => Padding(
+    Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
         top: 16,

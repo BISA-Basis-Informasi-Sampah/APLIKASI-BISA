@@ -8,8 +8,23 @@ import '../../controllers/auth_controller.dart';
 import '../../core/utils/validator.dart';
 import '../../core/widgets/app_widgets.dart';
 
-class RegisterView extends GetView<AuthController> {
+class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
+
+  @override
+  State<RegisterView> createState() => _RegisterViewState();
+}
+
+class _RegisterViewState extends State<RegisterView> {
+  late final AuthController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.find<AuthController>();
+    // Muat daftar bank sampah saat halaman dibuka
+    controller.fetchBankSampahUntukRegister();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +65,7 @@ class RegisterView extends GetView<AuthController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header
+                      // ── Header ───────────────────────────────────────
                       Center(
                         child: Column(
                           children: [
@@ -77,15 +92,51 @@ class RegisterView extends GetView<AuthController> {
                               ),
                             ),
                             Text(
-                              'Buat akun pengelola bank sampah',
+                              'Daftar dan tunggu verifikasi kelurahan',
                               style: AppTextStyles.bodyMd,
+                              textAlign: TextAlign.center,
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 20),
 
-                      // Nama lengkap
+                      // ── Info verifikasi ──────────────────────────────
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceLow,
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusMd,
+                          ),
+                          border: Border.all(
+                            color: AppColors.outlineVariant.withOpacity(0.4),
+                          ),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.info_outline_rounded,
+                              size: 16,
+                              color: AppColors.outline,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Setelah mendaftar, akun kamu akan diverifikasi oleh kelurahan sebelum bisa digunakan.',
+                                style: AppTextStyles.labelSm,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // ── Data diri ────────────────────────────────────
                       AppTextField(
                         controller: controller.regNamaController,
                         label: 'Nama Lengkap',
@@ -96,7 +147,6 @@ class RegisterView extends GetView<AuthController> {
                       ),
                       const SizedBox(height: 16),
 
-                      // No HP (opsional)
                       AppTextField(
                         controller: controller.regNoHpController,
                         label: 'No. HP (opsional)',
@@ -107,7 +157,6 @@ class RegisterView extends GetView<AuthController> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Email
                       AppTextField(
                         controller: controller.regEmailController,
                         label: 'Email',
@@ -118,7 +167,6 @@ class RegisterView extends GetView<AuthController> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Password
                       Obx(
                         () => AppTextField(
                           controller: controller.regPasswordController,
@@ -141,7 +189,6 @@ class RegisterView extends GetView<AuthController> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Konfirmasi password
                       Obx(
                         () => AppTextField(
                           controller: controller.regConfirmPasswordController,
@@ -169,7 +216,111 @@ class RegisterView extends GetView<AuthController> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Tombol daftar
+                      // ── Pilih bank sampah ────────────────────────────
+                      Text(
+                        'Bank Sampah yang Ingin Dikelola',
+                        style: AppTextStyles.titleMd,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Pilih bank sampah tempat kamu akan bertugas. Kelurahan akan memverifikasi pilihanmu.',
+                        style: AppTextStyles.bodyMd,
+                      ),
+                      const SizedBox(height: 12),
+
+                      Obx(() {
+                        if (controller.isLoadingBankSampah.value) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+
+                        if (controller.listBankSampahRegister.isEmpty) {
+                          return Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceLow,
+                              borderRadius: BorderRadius.circular(
+                                AppTheme.radiusMd,
+                              ),
+                              border: Border.all(
+                                color: AppColors.outlineVariant.withOpacity(
+                                  0.4,
+                                ),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.store_outlined,
+                                  size: 16,
+                                  color: AppColors.outline,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Belum ada bank sampah tersedia.',
+                                  style: AppTextStyles.bodyMd,
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceLowest,
+                            borderRadius: BorderRadius.circular(
+                              AppTheme.radiusMd,
+                            ),
+                            border: Border.all(
+                              color: AppColors.outlineVariant.withOpacity(0.4),
+                            ),
+                          ),
+                          child: Column(
+                            children: controller.listBankSampahRegister.map((
+                              bank,
+                            ) {
+                              return Obx(
+                                () => CheckboxListTile(
+                                  title: Text(
+                                    bank.namaLengkap,
+                                    style: AppTextStyles.bodyMd.copyWith(
+                                      color: AppColors.onBackground,
+                                    ),
+                                  ),
+                                  subtitle: bank.alamat != null
+                                      ? Text(
+                                          bank.alamat!,
+                                          style: AppTextStyles.labelSm,
+                                        )
+                                      : null,
+                                  value: controller.selectedBankSampahRegister
+                                      .contains(bank.id),
+                                  onChanged: (v) {
+                                    if (v == true) {
+                                      controller.selectedBankSampahRegister.add(
+                                        bank.id,
+                                      );
+                                    } else {
+                                      controller.selectedBankSampahRegister
+                                          .remove(bank.id);
+                                    }
+                                  },
+                                  activeColor: AppColors.primary,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  dense: true,
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 24),
+
+                      // ── Tombol daftar ────────────────────────────────
                       Obx(
                         () => AppButton(
                           label: 'Daftar Sekarang',
@@ -180,7 +331,7 @@ class RegisterView extends GetView<AuthController> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Sudah punya akun
+                      // ── Link login ───────────────────────────────────
                       Center(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,

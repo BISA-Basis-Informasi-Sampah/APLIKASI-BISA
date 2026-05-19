@@ -4,6 +4,8 @@ class ProfileModel {
   final String namaLengkap;
   final String? noHp;
   final String role;
+  final bool isVerified;
+  final List<String> bankSampahPilihan; // pilihan saat registrasi
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -13,6 +15,8 @@ class ProfileModel {
     required this.namaLengkap,
     this.noHp,
     required this.role,
+    this.isVerified = false,
+    this.bankSampahPilihan = const [],
     required this.createdAt,
     required this.updatedAt,
   });
@@ -27,6 +31,10 @@ class ProfileModel {
       namaLengkap: json['nama_lengkap'] as String,
       noHp: json['no_hp'] as String?,
       role: json['role'] as String,
+      isVerified: json['is_verified'] as bool? ?? false,
+      bankSampahPilihan: json['bank_sampah_pilihan'] != null
+          ? List<String>.from(json['bank_sampah_pilihan'] as List)
+          : [],
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
@@ -39,21 +47,22 @@ class ProfileModel {
       'nama_lengkap': namaLengkap,
       'no_hp': noHp,
       'role': role,
+      'is_verified': isVerified,
+      'bank_sampah_pilihan': bankSampahPilihan,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
   }
 
-  ProfileModel copyWith({
-    String? namaLengkap,
-    String? noHp,
-  }) {
+  ProfileModel copyWith({String? namaLengkap, String? noHp}) {
     return ProfileModel(
       id: id,
       authUserId: authUserId,
       namaLengkap: namaLengkap ?? this.namaLengkap,
       noHp: noHp ?? this.noHp,
       role: role,
+      isVerified: isVerified,
+      bankSampahPilihan: bankSampahPilihan,
       createdAt: createdAt,
       updatedAt: DateTime.now(),
     );

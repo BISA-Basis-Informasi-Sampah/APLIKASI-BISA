@@ -4,6 +4,7 @@ class AppRoutes {
   // Auth
   static const String login = '/login';
   static const String register = '/register';
+  static const String menungguVerifikasi = '/menunggu-verifikasi';
 
   // Pilih bank sampah (pengelola setelah login)
   static const String pilihBankSampah = '/pilih-bank-sampah';

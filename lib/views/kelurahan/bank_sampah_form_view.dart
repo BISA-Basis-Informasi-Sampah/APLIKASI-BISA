@@ -16,9 +16,9 @@ class BankSampahFormView extends GetView<BankSampahController> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Obx(() => Text(
-              controller.isEditMode ? 'Edit Bank Sampah' : 'Tambah Bank Sampah',
-            )),
+        title: Text(
+          controller.isEditMode ? 'Edit Bank Sampah' : 'Tambah Bank Sampah',
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Get.back(),
@@ -87,109 +87,124 @@ class BankSampahFormView extends GetView<BankSampahController> {
             // ── Status aktif ─────────────────────────────
             _SectionCard(
               title: 'Status',
-              child: Obx(() => Row(
-                    children: [
-                      const Icon(Icons.toggle_on_outlined,
-                          color: AppColors.outline, size: 22),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Status Aktif',
-                                style: AppTextStyles.bodyLg),
-                            Text(
-                              controller.isAktif.value
-                                  ? 'Bank sampah sedang beroperasi'
-                                  : 'Bank sampah tidak aktif',
-                              style: AppTextStyles.bodyMd,
-                            ),
-                          ],
-                        ),
+              child: Obx(
+                () => Row(
+                  children: [
+                    const Icon(
+                      Icons.toggle_on_outlined,
+                      color: AppColors.outline,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Status Aktif', style: AppTextStyles.bodyLg),
+                          Text(
+                            controller.isAktif.value
+                                ? 'Bank sampah sedang beroperasi'
+                                : 'Bank sampah tidak aktif',
+                            style: AppTextStyles.bodyMd,
+                          ),
+                        ],
                       ),
-                      Switch(
-                        value: controller.isAktif.value,
-                        onChanged: (v) => controller.isAktif.value = v,
-                        activeColor: AppColors.primary,
-                      ),
-                    ],
-                  )),
+                    ),
+                    Switch(
+                      value: controller.isAktif.value,
+                      onChanged: (v) => controller.isAktif.value = v,
+                      activeColor: AppColors.primary,
+                    ),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 16),
 
             // ── Pengelola yang terhubung (edit mode) ─────
-            Obx(() {
-              if (!controller.isEditMode) return const SizedBox.shrink();
-              return Column(
-                children: [
-                  _SectionCard(
-                    title: 'Pengelola Terhubung',
-                    child: controller.listPengelolaTerhubung.isEmpty
-                        ? Row(
-                            children: [
-                              const Icon(Icons.person_off_outlined,
-                                  color: AppColors.outline, size: 20),
-                              const SizedBox(width: 8),
-                              Text('Belum ada pengelola terhubung',
-                                  style: AppTextStyles.bodyMd),
-                            ],
-                          )
-                        : Column(
-                            children: controller.listPengelolaTerhubung
-                                .map((p) => Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 8),
+            if (controller.isEditMode)
+              Obx(() {
+                return Column(
+                  children: [
+                    _SectionCard(
+                      title: 'Pengelola Terhubung',
+                      child: controller.listPengelolaTerhubung.isEmpty
+                          ? Row(
+                              children: [
+                                const Icon(
+                                  Icons.person_off_outlined,
+                                  color: AppColors.outline,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Belum ada pengelola terhubung',
+                                  style: AppTextStyles.bodyMd,
+                                ),
+                              ],
+                            )
+                          : Column(
+                              children: controller.listPengelolaTerhubung
+                                  .map(
+                                    (p) => Padding(
+                                      padding: const EdgeInsets.only(bottom: 8),
                                       child: Row(
                                         children: [
                                           Container(
                                             width: 36,
                                             height: 36,
                                             decoration: BoxDecoration(
-                                              color: AppColors
-                                                  .secondaryContainer,
+                                              color:
+                                                  AppColors.secondaryContainer,
                                               shape: BoxShape.circle,
                                             ),
                                             child: const Icon(
-                                                Icons.person_rounded,
-                                                size: 18,
-                                                color: AppColors
-                                                    .onSecondaryContainer),
+                                              Icons.person_rounded,
+                                              size: 18,
+                                              color: AppColors
+                                                  .onSecondaryContainer,
+                                            ),
                                           ),
                                           const SizedBox(width: 10),
                                           Expanded(
-                                            child: Text(p.namaLengkap,
-                                                style:
-                                                    AppTextStyles.bodyLg),
+                                            child: Text(
+                                              p.namaLengkap,
+                                              style: AppTextStyles.bodyLg,
+                                            ),
                                           ),
                                           IconButton(
                                             icon: const Icon(
-                                                Icons.link_off_rounded,
-                                                size: 18,
-                                                color: AppColors.error),
-                                            onPressed: () => controller
-                                                .lepaskanPengelola(p),
+                                              Icons.link_off_rounded,
+                                              size: 18,
+                                              color: AppColors.error,
+                                            ),
+                                            onPressed: () =>
+                                                controller.lepaskanPengelola(p),
                                             tooltip: 'Lepas pengelola',
                                           ),
                                         ],
                                       ),
-                                    ))
-                                .toList(),
-                          ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              );
-            }),
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                );
+              }),
 
             // ── Tombol simpan ─────────────────────────────
-            Obx(() => AppButton(
-                  label: controller.isEditMode
-                      ? 'Simpan Perubahan'
-                      : 'Buat Bank Sampah',
-                  isLoading: controller.isLoading.value,
-                  onPressed: controller.simpan,
-                  icon: Icons.save_rounded,
-                )),
+            Obx(
+              () => AppButton(
+                label: controller.editData.value != null
+                    ? 'Simpan Perubahan'
+                    : 'Buat Bank Sampah',
+                isLoading: controller.isSaving.value,
+                onPressed: controller.simpan,
+                icon: Icons.save_rounded,
+              ),
+            ),
             const SizedBox(height: 12),
             AppButton(
               label: 'Batal',
@@ -228,10 +243,7 @@ class _SectionCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: child,
-          ),
+          Padding(padding: const EdgeInsets.all(16), child: child),
         ],
       ),
     );
