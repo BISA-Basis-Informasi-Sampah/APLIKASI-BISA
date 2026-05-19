@@ -175,14 +175,14 @@ class DashboardKelurahanView extends GetView<DashboardKelurahanController> {
       children: [
         _StatCard(
           label: 'Total Sampah\nBulan Ini',
-          value: FormatHelper.number(controller.totalSampahBulanIni.value),
+          value: FormatHelper.number(controller.totalSampahBulanIni),
           satuan: 'kg',
           icon: Icons.scale_outlined,
           color: AppColors.primary,
         ),
         _StatCard(
           label: 'Bank Sampah\nAktif',
-          value: controller.jumlahBankAktif.value.toString(),
+          value: controller.jumlahBankAktif.toString(),
           satuan: 'unit',
           icon: Icons.store_rounded,
           color: AppColors.secondary,
@@ -220,7 +220,7 @@ class DashboardKelurahanView extends GetView<DashboardKelurahanController> {
           physics: const NeverScrollableScrollPhysics(),
           children: [
             _MenuCard(
-              icon: Icons.monitoring_rounded,
+              icon: Icons.bar_chart_rounded,
               label: 'Monitoring',
               onTap: () => Get.toNamed(AppRoutes.monitoringBankSampah),
             ),

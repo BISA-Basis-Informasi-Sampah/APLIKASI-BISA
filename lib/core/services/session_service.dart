@@ -11,6 +11,7 @@ class SessionService extends GetxService {
   bool get isKelurahan => profile.value?.role == 'kelurahan';
   bool get isPengelola => profile.value?.role == 'pengelola';
 
+  String? get activeBankSampahIdOrNull => activeBankSampah.value?.id;
   String get activeBankSampahId => activeBankSampah.value?.id ?? '';
   String get activeBankSampahNama => activeBankSampah.value?.nama ?? '';
 

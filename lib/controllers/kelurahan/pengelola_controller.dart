@@ -25,6 +25,15 @@ class PengelolaController extends GetxController {
 
   void togglePassword() => isPasswordVisible.value = !isPasswordVisible.value;
 
+  void resetForm() {
+  formKey.currentState?.reset();
+  namaController.clear();
+  emailController.clear();
+  passwordController.clear();
+  noHpController.clear();
+  selectedBankSampahIds.clear();
+}
+
   @override
   void onInit() {
     super.onInit();
@@ -71,60 +80,41 @@ class PengelolaController extends GetxController {
   void goToForm() => Get.toNamed(AppRoutes.formPengelola);
 
   Future<void> tambahPengelola() async {
-    if (!formKey.currentState!.validate()) return;
-
-    isSaving.value = true;
-    try {
-      // 1. Buat akun auth
-      final response = await SupabaseService.client.auth.admin.createUser(
-        AdminUserAttributes(
-          email: emailController.text.trim(),
-          password: passwordController.text,
-          emailConfirm: true,
-        ),
-      );
-
-      if (response.user == null) {
-        Get.snackbar('Gagal', 'Gagal membuat akun pengelola.');
-        return;
-      }
-
-      // 2. Insert profile
-      final profileData = await SupabaseService.client
-          .from(SupabaseConstants.tableProfiles)
-          .insert({
-        'auth_user_id': response.user!.id,
+  if (!formKey.currentState!.validate()) return;
+ 
+  isSaving.value = true;
+  try {
+    // Panggil Edge Function, bukan admin.createUser() langsung
+    // Edge Function "create-pengelola" harus dibuat di Supabase
+    // (lihat file supabase/functions/create-pengelola/index.ts)
+    final response = await SupabaseService.client.functions.invoke(
+      'create-pengelola',
+      body: {
+        'email': emailController.text.trim(),
+        'password': passwordController.text,
         'nama_lengkap': namaController.text.trim(),
         'no_hp': noHpController.text.trim().isEmpty
             ? null
             : noHpController.text.trim(),
-        'role': 'pengelola',
-      }).select().single();
-
-      final profileId = profileData['id'] as String;
-
-      // 3. Hubungkan ke bank sampah yang dipilih
-      if (selectedBankSampahIds.isNotEmpty) {
-        final relasi = selectedBankSampahIds
-            .map((bsId) => {
-                  'profile_id': profileId,
-                  'bank_sampah_id': bsId,
-                })
-            .toList();
-        await SupabaseService.client
-            .from(SupabaseConstants.tablePengelolaBankSampah)
-            .insert(relasi);
-      }
-
-      await _fetchPengelola();
-      Get.back();
-      Get.snackbar('Berhasil', 'Akun pengelola berhasil dibuat.');
-    } catch (e) {
-      Get.snackbar('Gagal', 'Gagal membuat akun pengelola.');
-    } finally {
-      isSaving.value = false;
+        'bank_sampah_ids': selectedBankSampahIds.toList(),
+      },
+    );
+ 
+    if (response.status != 200) {
+      final msg = response.data?['error'] ?? 'Gagal membuat akun pengelola.';
+      Get.snackbar('Gagal', msg);
+      return;
     }
+ 
+    await _fetchPengelola();
+    Get.back();
+    Get.snackbar('Berhasil', 'Akun pengelola berhasil dibuat.');
+  } catch (e) {
+    Get.snackbar('Gagal', 'Gagal membuat akun pengelola: ${e.toString()}');
+  } finally {
+    isSaving.value = false;
   }
+}
 
   Future<void> updateRelasiPengelola(
       String profileId, List<String> bankSampahIds) async {
@@ -155,18 +145,34 @@ class PengelolaController extends GetxController {
   }
 
   Future<void> hapusPengelola(String profileId) async {
-    try {
-      // Hapus profile (cascade hapus relasi)
-      await SupabaseService.client
-          .from(SupabaseConstants.tableProfiles)
-          .delete()
-          .eq('id', profileId);
-      listPengelola.removeWhere((e) => e.id == profileId);
-      Get.snackbar('Berhasil', 'Pengelola berhasil dihapus.');
-    } catch (e) {
+  try {
+    // Ambil auth_user_id dulu sebelum hapus profil
+    final profileData = await SupabaseService.client
+        .from(SupabaseConstants.tableProfiles)
+        .select('auth_user_id')
+        .eq('id', profileId)
+        .single();
+ 
+    final authUserId = profileData['auth_user_id'] as String;
+ 
+    // Hapus lewat Edge Function agar bisa hapus auth.users
+    // (lihat file supabase/functions/delete-pengelola/index.ts)
+    final response = await SupabaseService.client.functions.invoke(
+      'delete-pengelola',
+      body: {'auth_user_id': authUserId, 'profile_id': profileId},
+    );
+ 
+    if (response.status != 200) {
       Get.snackbar('Gagal', 'Pengelola gagal dihapus.');
+      return;
     }
+ 
+    listPengelola.removeWhere((e) => e.id == profileId);
+    Get.snackbar('Berhasil', 'Pengelola berhasil dihapus.');
+  } catch (e) {
+    Get.snackbar('Gagal', 'Pengelola gagal dihapus.');
   }
+}
 
   @override
   void onClose() {
@@ -177,3 +183,5 @@ class PengelolaController extends GetxController {
     super.onClose();
   }
 }
+
+

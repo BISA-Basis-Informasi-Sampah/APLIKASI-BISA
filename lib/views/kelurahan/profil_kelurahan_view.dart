@@ -8,6 +8,7 @@ import '../../app/themes/app_theme.dart';
 import '../../core/services/session_service.dart';
 import '../../core/utils/format_helper.dart';
 import '../../core/widgets/app_widgets.dart';
+import '../../controllers/auth_controller.dart';
 
 class ProfilKelurahanView extends StatelessWidget {
   const ProfilKelurahanView({super.key});
@@ -171,18 +172,20 @@ class ProfilKelurahanView extends StatelessWidget {
   }
 
   void _confirmLogout(BuildContext context) async {
-    final ok = await ConfirmDialog.show(
-      title: 'Keluar',
-      message: 'Yakin ingin keluar dari akun?',
-      confirmLabel: 'Keluar',
-      cancelLabel: 'Batal',
-      isDanger: true,
-    );
-    if (ok) {
-      SessionService.to.clearSession();
-      Get.offAllNamed(AppRoutes.login);
-    }
+  final ok = await ConfirmDialog.show(
+    title: 'Keluar',
+    message: 'Yakin ingin keluar dari akun?',
+    confirmLabel: 'Keluar',
+    cancelLabel: 'Batal',
+    isDanger: true,
+  );
+  if (ok) {
+    // Gunakan AuthController.logout() agar auth.signOut() ikut dipanggil
+    Get.find<AuthController>().logout();
+    // JANGAN pakai manual clearSession + navigate karena
+    // token Supabase masih aktif di memory
   }
+}
 }
 
 // ── Sub-widgets ──────────────────────────────────────────────────────────────

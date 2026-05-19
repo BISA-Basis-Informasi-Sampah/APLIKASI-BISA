@@ -87,7 +87,7 @@ class RegisterView extends GetView<AuthController> {
 
                       // Nama lengkap
                       AppTextField(
-                        controller: controller.namaController,
+                        controller: controller.regNamaController,
                         label: 'Nama Lengkap',
                         hint: 'Masukkan nama lengkap',
                         prefixIcon: Icons.badge_outlined,
@@ -98,7 +98,7 @@ class RegisterView extends GetView<AuthController> {
 
                       // No HP (opsional)
                       AppTextField(
-                        controller: controller.noHpController,
+                        controller: controller.regNoHpController,
                         label: 'No. HP (opsional)',
                         hint: 'Contoh: 08123456789',
                         prefixIcon: Icons.phone_outlined,
@@ -109,7 +109,7 @@ class RegisterView extends GetView<AuthController> {
 
                       // Email
                       AppTextField(
-                        controller: controller.registerEmailController,
+                        controller: controller.regEmailController,
                         label: 'Email',
                         hint: 'Masukkan email',
                         prefixIcon: Icons.email_outlined,
@@ -121,7 +121,7 @@ class RegisterView extends GetView<AuthController> {
                       // Password
                       Obx(
                         () => AppTextField(
-                          controller: controller.registerPasswordController,
+                          controller: controller.regPasswordController,
                           label: 'Kata Sandi',
                           hint: 'Minimal 6 karakter',
                           prefixIcon: Icons.lock_outline_rounded,
@@ -144,7 +144,7 @@ class RegisterView extends GetView<AuthController> {
                       // Konfirmasi password
                       Obx(
                         () => AppTextField(
-                          controller: controller.confirmPasswordController,
+                          controller: controller.regConfirmPasswordController,
                           label: 'Konfirmasi Kata Sandi',
                           hint: 'Ulangi kata sandi',
                           prefixIcon: Icons.lock_outline_rounded,
@@ -152,7 +152,7 @@ class RegisterView extends GetView<AuthController> {
                               !controller.isConfirmPasswordVisible.value,
                           validator: (v) => AppValidator.confirmPassword(
                             v,
-                            controller.registerPasswordController.text,
+                            controller.regPasswordController.text,
                           ),
                           suffixIcon: IconButton(
                             icon: Icon(

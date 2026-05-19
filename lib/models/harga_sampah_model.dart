@@ -42,6 +42,14 @@ class HargaSampahModel {
     return '-';
   }
 
+  String get breadcrumb {
+  final parts = <String>[];
+  if (kategori != null) parts.add(kategori!.nama);
+  if (subKategori != null) parts.add(subKategori!.nama);
+  if (jenisSampah != null) parts.add(jenisSampah!.nama);
+  return parts.join(' > ');
+}
+
   String get levelLabel {
     if (jenisSampahId != null) return 'Jenis';
     if (subKategoriId != null) return 'Sub Kategori';

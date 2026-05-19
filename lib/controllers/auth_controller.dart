@@ -63,21 +63,22 @@ class AuthController extends GetxController {
 
   // ─── Register ────────────────────────────────────────────────────────────────
   Future<void> register() async {
-    if (!registerFormKey.currentState!.validate()) return;
-
-    isLoading.value = true;
+  if (!registerFormKey.currentState!.validate()) return;
+ 
+  isLoading.value = true;
+  try {
+    final response = await SupabaseService.client.auth.signUp(
+      email: regEmailController.text.trim(),
+      password: regPasswordController.text,
+    );
+ 
+    if (response.user == null) {
+      _showError('Registrasi gagal. Coba lagi.');
+      return;
+    }
+ 
     try {
-      final response = await SupabaseService.client.auth.signUp(
-        email: regEmailController.text.trim(),
-        password: regPasswordController.text,
-      );
-
-      if (response.user == null) {
-        _showError('Registrasi gagal. Coba lagi.');
-        return;
-      }
-
-      // Insert profile — default role: pengelola
+      // Insert profil — jika gagal, hapus akun auth yang baru dibuat
       await SupabaseService.client
           .from(SupabaseConstants.tableProfiles)
           .insert({
@@ -88,16 +89,24 @@ class AuthController extends GetxController {
                 : regNoHpController.text.trim(),
             'role': 'pengelola',
           });
-
-      await _loadProfileAndNavigate(response.user!.id);
-    } on AuthException catch (e) {
-      _showError(_mapAuthError(e.message));
-    } catch (e) {
-      _showError('Registrasi gagal. Periksa koneksi internet kamu.');
-    } finally {
-      isLoading.value = false;
+    } catch (profileError) {
+      // Rollback: hapus akun auth karena profil gagal dibuat
+      // Ini butuh Edge Function atau signOut agar tidak ada akun
+      // auth tanpa profil
+      await SupabaseService.client.auth.signOut();
+      _showError('Registrasi gagal. Silakan coba lagi.');
+      return;
     }
+ 
+    await _loadProfileAndNavigate(response.user!.id);
+  } on AuthException catch (e) {
+    _showError(_mapAuthError(e.message));
+  } catch (e) {
+    _showError('Registrasi gagal. Periksa koneksi internet kamu.');
+  } finally {
+    isLoading.value = false;
   }
+}
 
   // ─── Logout ──────────────────────────────────────────────────────────────────
   Future<void> logout() async {
