@@ -23,8 +23,8 @@ class AppValidator {
     if (value == null || value.isEmpty) {
       return 'Password wajib diisi';
     }
-    if (value.length < 6) {
-      return 'Password minimal 6 karakter';
+    if (value.length < 8) {
+      return 'Password minimal 8 karakter';
     }
     return null;
   }

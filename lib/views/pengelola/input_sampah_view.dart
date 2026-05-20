@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-
 import '../../app/themes/app_colors.dart';
 import '../../app/themes/app_text_styles.dart';
 import '../../app/themes/app_theme.dart';
@@ -35,80 +34,116 @@ class InputSampahView extends GetView<InputSampahController> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // ── Kategori ──────────────────────────────────
+            // ── Jenis Sampah ──────────────────────────────
             _SectionCard(
               title: 'Jenis Sampah',
               child: Column(
                 children: [
-                  // Kategori (wajib)
-                  Obx(
-                    () => _DropdownField<String>(
-                      label: 'Kategori *',
-                      hint: 'Pilih kategori',
-                      value: controller.selectedKategoriId.value.isEmpty
-                          ? null
-                          : controller.selectedKategoriId.value,
-                      items: controller.listKategori
-                          .map(
-                            (k) => DropdownMenuItem(
-                              value: k.id,
-                              child: Text(k.nama),
-                            ),
-                          )
-                          .toList(),
-                      validator: (v) =>
-                          AppValidator.required(v, fieldName: 'Kategori'),
-                      onChanged: controller.onKategoriChanged,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+                  // 1. Kategori (selalu tampil, wajib)
+                  Obx(() => _DropdownField<String>(
+                        label: 'Kategori *',
+                        hint: 'Pilih kategori',
+                        value: controller.selectedKategoriId.value.isEmpty
+                            ? null
+                            : controller.selectedKategoriId.value,
+                        items: controller.listKategori
+                            .map((k) => DropdownMenuItem(
+                                  value: k.id,
+                                  child: Text(k.nama),
+                                ))
+                            .toList(),
+                        validator: (v) =>
+                            AppValidator.required(v, fieldName: 'Kategori'),
+                        onChanged: controller.onKategoriChanged,
+                      )),
 
-                  // Sub kategori (opsional)
-                  Obx(
-                    () => _DropdownField<String>(
-                      label: 'Sub Kategori (opsional)',
-                      hint: controller.listSubKategori.isEmpty
-                          ? 'Pilih kategori dahulu'
-                          : 'Pilih sub kategori',
-                      value: controller.selectedSubKategoriId.value.isEmpty
-                          ? null
-                          : controller.selectedSubKategoriId.value,
-                      items: controller.listSubKategori
-                          .map(
-                            (s) => DropdownMenuItem(
-                              value: s.id,
-                              child: Text(s.nama),
-                            ),
-                          )
-                          .toList(),
-                      enabled: controller.listSubKategori.isNotEmpty,
-                      onChanged: controller.onSubKategoriChanged,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+                  // 2. Sub Kategori — hanya muncul jika kategori dipilih
+                  //    DAN listSubKategori tidak kosong
+                  Obx(() {
+                    if (controller.selectedKategoriId.value.isEmpty ||
+                        controller.listSubKategori.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return Column(children: [
+                      const SizedBox(height: 16),
+                      _DropdownField<String>(
+                        label: 'Sub Kategori *',
+                        hint: 'Pilih sub kategori',
+                        value: controller.selectedSubKategoriId.value.isEmpty
+                            ? null
+                            : controller.selectedSubKategoriId.value,
+                        items: controller.listSubKategori
+                            .map((s) => DropdownMenuItem(
+                                  value: s.id,
+                                  child: Text(s.nama),
+                                ))
+                            .toList(),
+                        validator: (v) =>
+                            AppValidator.required(v, fieldName: 'Sub Kategori'),
+                        onChanged: controller.onSubKategoriChanged,
+                      ),
+                    ]);
+                  }),
 
-                  // Jenis sampah (opsional)
-                  Obx(
-                    () => _DropdownField<String>(
-                      label: 'Jenis Sampah (opsional)',
-                      hint: controller.listJenisSampah.isEmpty
-                          ? 'Pilih sub kategori dahulu'
-                          : 'Pilih jenis sampah',
-                      value: controller.selectedJenisId.value.isEmpty
-                          ? null
-                          : controller.selectedJenisId.value,
-                      items: controller.listJenisSampah
-                          .map(
-                            (j) => DropdownMenuItem(
-                              value: j.id,
-                              child: Text(j.nama),
-                            ),
-                          )
-                          .toList(),
-                      enabled: controller.listJenisSampah.isNotEmpty,
-                      onChanged: controller.onJenisChanged,
-                    ),
-                  ),
+                  // 3. Tipe — hanya muncul jika sub kategori dipilih
+                  //    DAN listTipe tidak kosong
+                  Obx(() {
+                    if (controller.selectedSubKategoriId.value.isEmpty ||
+                        controller.listTipe.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return Column(children: [
+                      const SizedBox(height: 16),
+                      _DropdownField<String>(
+                        label: 'Tipe *',
+                        hint: 'Pilih tipe material',
+                        value: controller.selectedTipeId.value.isEmpty
+                            ? null
+                            : controller.selectedTipeId.value,
+                        items: controller.listTipe
+                            .map((t) => DropdownMenuItem(
+                                  value: t.id,
+                                  child: Text(t.nama),
+                                ))
+                            .toList(),
+                        validator: (v) =>
+                            AppValidator.required(v, fieldName: 'Tipe'),
+                        onChanged: controller.onTipeChanged,
+                      ),
+                    ]);
+                  }),
+
+                  // 4. Jenis Sampah — hanya muncul jika listJenisSampah tidak kosong
+                  //    dan semua prasyarat terpenuhi
+                  Obx(() {
+                    if (controller.listJenisSampah.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    // Cek prasyarat: jika ada tipe tapi belum dipilih, jangan tampil
+                    if (controller.listTipe.isNotEmpty &&
+                        controller.selectedTipeId.value.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return Column(children: [
+                      const SizedBox(height: 16),
+                      _DropdownField<String>(
+                        label: 'Jenis Sampah *',
+                        hint: 'Pilih jenis sampah',
+                        value: controller.selectedJenisId.value.isEmpty
+                            ? null
+                            : controller.selectedJenisId.value,
+                        items: controller.listJenisSampah
+                            .map((j) => DropdownMenuItem(
+                                  value: j.id,
+                                  child: Text(j.nama),
+                                ))
+                            .toList(),
+                        validator: (v) => AppValidator.required(v,
+                            fieldName: 'Jenis Sampah'),
+                        onChanged: controller.onJenisChanged,
+                      ),
+                    ]);
+                  }),
                 ],
               ),
             ),
@@ -143,12 +178,10 @@ class InputSampahView extends GetView<InputSampahController> {
                             ? null
                             : controller.selectedSatuanId.value,
                         items: controller.listSatuan
-                            .map(
-                              (s) => DropdownMenuItem(
-                                value: s.id,
-                                child: Text(s.singkatan),
-                              ),
-                            )
+                            .map((s) => DropdownMenuItem(
+                                  value: s.id,
+                                  child: Text(s.singkatan),
+                                ))
                             .toList(),
                         validator: (v) =>
                             AppValidator.required(v, fieldName: 'Satuan'),
@@ -166,7 +199,7 @@ class InputSampahView extends GetView<InputSampahController> {
             _HargaManualSection(),
             const SizedBox(height: 16),
 
-            // ── Tanggal ───────────────────────────────────
+            // ── Tanggal Pengelolaan ───────────────────────
             _SectionCard(
               title: 'Tanggal Pengelolaan',
               child: Obx(
@@ -194,7 +227,7 @@ class InputSampahView extends GetView<InputSampahController> {
             ),
             const SizedBox(height: 16),
 
-            // ── Harga (snapshot otomatis) ─────────────────
+            // ── Harga snapshot otomatis ───────────────────
             Obx(() {
               if (controller.hargaSnapshot.value == null) {
                 return const SizedBox.shrink();
@@ -205,11 +238,8 @@ class InputSampahView extends GetView<InputSampahController> {
                   children: [
                     Row(
                       children: [
-                        const Icon(
-                          Icons.sell_outlined,
-                          color: AppColors.outline,
-                          size: 20,
-                        ),
+                        const Icon(Icons.sell_outlined,
+                            color: AppColors.outline, size: 20),
                         const SizedBox(width: 8),
                         Text('Harga terdaftar:', style: AppTextStyles.bodyMd),
                         const Spacer(),
@@ -217,9 +247,8 @@ class InputSampahView extends GetView<InputSampahController> {
                           FormatHelper.currency(
                             controller.hargaSnapshot.value!.hargaPerSatuan,
                           ),
-                          style: AppTextStyles.titleMd.copyWith(
-                            color: AppColors.primary,
-                          ),
+                          style: AppTextStyles.titleMd
+                              .copyWith(color: AppColors.primary),
                         ),
                         Text(
                           ' / ${controller.hargaSnapshot.value!.satuan?.singkatan ?? ''}',
@@ -234,22 +263,18 @@ class InputSampahView extends GetView<InputSampahController> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Estimasi total:', style: AppTextStyles.bodyMd),
+                          Text('Estimasi total:',
+                              style: AppTextStyles.bodyMd),
                           Text(
                             FormatHelper.currency(
-                              (double.tryParse(
-                                        controller.jumlahController.text
-                                            .replaceAll(',', '.'),
-                                      ) ??
+                              (double.tryParse(controller.jumlahController.text
+                                          .replaceAll(',', '.')) ??
                                       0) *
                                   controller
-                                      .hargaSnapshot
-                                      .value!
-                                      .hargaPerSatuan,
+                                      .hargaSnapshot.value!.hargaPerSatuan,
                             ),
-                            style: AppTextStyles.titleMd.copyWith(
-                              color: AppColors.secondary,
-                            ),
+                            style: AppTextStyles.titleMd
+                                .copyWith(color: AppColors.secondary),
                           ),
                         ],
                       ),
@@ -273,7 +298,7 @@ class InputSampahView extends GetView<InputSampahController> {
             ),
             const SizedBox(height: 24),
 
-            // ── Tombol simpan ─────────────────────────────
+            // ── Tombol Simpan ─────────────────────────────
             Obx(
               () => AppButton(
                 label: controller.isEditMode
@@ -298,7 +323,7 @@ class InputSampahView extends GetView<InputSampahController> {
   }
 }
 
-// ── Reusable section card ──────────────────────────────────
+// ── Section Card ──────────────────────────────────────────
 class _SectionCard extends StatelessWidget {
   final String title;
   final Widget child;
@@ -338,7 +363,6 @@ class _HargaManualSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // ── Card utama (visual only, semua disabled) ──
         Container(
           decoration: BoxDecoration(
             color: AppColors.surfaceLowest,
@@ -349,7 +373,6 @@ class _HargaManualSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                 child: Row(
@@ -358,22 +381,18 @@ class _HargaManualSection extends StatelessWidget {
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
+                          horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFFF3E0),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFFFFB74D)),
+                        border:
+                            Border.all(color: const Color(0xFFFFB74D)),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            Icons.construction_rounded,
-                            size: 11,
-                            color: Color(0xFFE65100),
-                          ),
+                          Icon(Icons.construction_rounded,
+                              size: 11, color: Color(0xFFE65100)),
                           SizedBox(width: 4),
                           Text(
                             'Dalam Pengembangan',
@@ -396,23 +415,20 @@ class _HargaManualSection extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Disclaimer banner
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFFF8E1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFFFCC02)),
+                        border:
+                            Border.all(color: const Color(0xFFFFCC02)),
                       ),
                       child: const Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.info_outline_rounded,
-                            size: 18,
-                            color: Color(0xFFF57F17),
-                          ),
+                          Icon(Icons.info_outline_rounded,
+                              size: 18, color: Color(0xFFF57F17)),
                           SizedBox(width: 10),
                           Expanded(
                             child: Text(
@@ -428,73 +444,56 @@ class _HargaManualSection extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-
-                    // Field Harga per Satuan (disabled)
                     IgnorePointer(
                       child: TextFormField(
                         enabled: false,
                         decoration: InputDecoration(
                           labelText: 'Harga per Satuan (Rp)',
                           hintText: 'Contoh: 5000',
-                          prefixIcon: const Icon(
-                            Icons.sell_outlined,
-                            color: AppColors.outline,
-                          ),
+                          prefixIcon: const Icon(Icons.sell_outlined,
+                              color: AppColors.outline),
                           filled: true,
                           fillColor: AppColors.surfaceLow,
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
+                              horizontal: 16, vertical: 14),
                           border: OutlineInputBorder(
                             borderRadius:
                                 BorderRadius.circular(AppTheme.radiusMd),
                             borderSide: const BorderSide(
-                              color: AppColors.outlineVariant,
-                            ),
+                                color: AppColors.outlineVariant),
                           ),
                           disabledBorder: OutlineInputBorder(
                             borderRadius:
                                 BorderRadius.circular(AppTheme.radiusMd),
                             borderSide: const BorderSide(
-                              color: AppColors.outlineVariant,
-                            ),
+                                color: AppColors.outlineVariant),
                           ),
                         ),
-                        style: AppTextStyles.bodyLg.copyWith(
-                          color: AppColors.outline,
-                        ),
+                        style: AppTextStyles.bodyLg
+                            .copyWith(color: AppColors.outline),
                       ),
                     ),
                     const SizedBox(height: 12),
-
-                    // Preview total (disabled, placeholder)
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
+                          horizontal: 16, vertical: 14),
                       decoration: BoxDecoration(
                         color: AppColors.surfaceLow,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                        border: Border.all(color: AppColors.outlineVariant),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radiusMd),
+                        border:
+                            Border.all(color: AppColors.outlineVariant),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Estimasi Total:',
-                            style: AppTextStyles.bodyMd.copyWith(
-                              color: AppColors.outline,
-                            ),
-                          ),
-                          Text(
-                            'Rp —',
-                            style: AppTextStyles.titleMd.copyWith(
-                              color: AppColors.outline,
-                            ),
-                          ),
+                          Text('Estimasi Total:',
+                              style: AppTextStyles.bodyMd
+                                  .copyWith(color: AppColors.outline)),
+                          Text('Rp —',
+                              style: AppTextStyles.titleMd
+                                  .copyWith(color: AppColors.outline)),
                         ],
                       ),
                     ),
@@ -504,8 +503,6 @@ class _HargaManualSection extends StatelessWidget {
             ],
           ),
         ),
-
-        // ── Overlay transparan untuk block semua interaksi ──
         Positioned.fill(
           child: ClipRRect(
             borderRadius: BorderRadius.circular(AppTheme.radiusXl),
@@ -519,7 +516,7 @@ class _HargaManualSection extends StatelessWidget {
   }
 }
 
-// ── Reusable dropdown field ────────────────────────────────
+// ── Dropdown Field ────────────────────────────────────────
 class _DropdownField<T> extends StatelessWidget {
   final String label;
   final String hint;
@@ -553,10 +550,8 @@ class _DropdownField<T> extends StatelessWidget {
         hintText: hint,
         filled: true,
         fillColor: enabled ? AppColors.surfaceLowest : AppColors.surfaceLow,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppTheme.radiusMd),
           borderSide: const BorderSide(color: AppColors.outlineVariant),
@@ -567,7 +562,8 @@ class _DropdownField<T> extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide:
+              const BorderSide(color: AppColors.primary, width: 1.5),
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppTheme.radiusMd),
@@ -575,10 +571,8 @@ class _DropdownField<T> extends StatelessWidget {
         ),
       ),
       dropdownColor: AppColors.surfaceLowest,
-      icon: const Icon(
-        Icons.keyboard_arrow_down_rounded,
-        color: AppColors.outline,
-      ),
+      icon: const Icon(Icons.keyboard_arrow_down_rounded,
+          color: AppColors.outline),
     );
   }
 }

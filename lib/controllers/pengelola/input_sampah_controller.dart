@@ -429,16 +429,14 @@ class InputSampahController extends GetxController {
       final hargaPerSatuanInput = double.tryParse(
           hargaPerSatuanController.text.trim().replaceAll(',', '.'));
 
-      // Karena total_harga di schema baru memiliki default constraint (bukan generated column),
-      // kita dapat menyimpannya secara manual agar presisi.
+      // Karena total_harga adalah generated column di database PostgreSQL,
+      // kita tidak boleh memasukkannya ke dalam payload insert/update.
+      // Kita cukup mengirimkan harga_per_satuan dan jumlah, dan database akan menghitung total_harga secara otomatis.
       double hargaPerSatuan = 0.0;
-      double totalHarga = 0.0;
       if (totalHargaInput != null && totalHargaInput > 0) {
-        totalHarga = totalHargaInput;
         hargaPerSatuan = totalHargaInput / (jumlah > 0 ? jumlah : 1.0);
       } else if (hargaPerSatuanInput != null) {
         hargaPerSatuan = hargaPerSatuanInput;
-        totalHarga = jumlah * hargaPerSatuan;
       }
 
       final payload = {
@@ -448,7 +446,7 @@ class InputSampahController extends GetxController {
         'sub_kategori_id': selectedSubKategoriId.value.trim().isEmpty
             ? null
             : selectedSubKategoriId.value.trim(),
-        'tipe_id': selectedTipeId.value.trim().isEmpty     // ← BARU (simpan ke DB jika kolomnya ada)
+        'tipe_id': selectedTipeId.value.trim().isEmpty
             ? null
             : selectedTipeId.value.trim(),
         'jenis_sampah_id': selectedJenisId.value.trim().isEmpty
@@ -457,7 +455,6 @@ class InputSampahController extends GetxController {
         'jumlah':          jumlah,
         'satuan_id':       selectedSatuanId.value.trim(),
         'harga_per_satuan': hargaPerSatuan,
-        'total_harga':     totalHarga,
         'tanggal_pengelolaan':
             FormatHelper.dateToInput(selectedTanggal.value!),
         'catatan': catatanController.text.trim().isEmpty

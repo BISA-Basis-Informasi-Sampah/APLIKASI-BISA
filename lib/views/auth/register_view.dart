@@ -171,7 +171,7 @@ class _RegisterViewState extends State<RegisterView> {
                         () => AppTextField(
                           controller: controller.regPasswordController,
                           label: 'Kata Sandi',
-                          hint: 'Minimal 6 karakter',
+                          hint: 'Minimal 8 karakter',
                           prefixIcon: Icons.lock_outline_rounded,
                           obscureText: !controller.isPasswordVisible.value,
                           validator: AppValidator.password,
