@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+
 import '../../app/themes/app_colors.dart';
 import '../../app/themes/app_text_styles.dart';
 import '../../app/themes/app_theme.dart';
@@ -21,14 +22,12 @@ class InputSampahView extends GetView<InputSampahController> {
         foregroundColor: AppColors.onSurface,
         elevation: 0,
         scrolledUnderElevation: 1,
-        title: Obx(
-          () => Text(
-            controller.isEditMode ? 'Edit Data Sampah' : 'Input Data Sampah',
-          ),
+        title: Text(
+          controller.isEditMode ? 'Edit Data Sampah' : 'Input Data Sampah',
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Get.back(),
+          onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: Form(
@@ -163,6 +162,10 @@ class InputSampahView extends GetView<InputSampahController> {
             ),
             const SizedBox(height: 16),
 
+            // ── Harga Manual (WIP) ────────────────────────
+            _HargaManualSection(),
+            const SizedBox(height: 16),
+
             // ── Tanggal ───────────────────────────────────
             _SectionCard(
               title: 'Tanggal Pengelolaan',
@@ -285,7 +288,7 @@ class InputSampahView extends GetView<InputSampahController> {
             AppButton(
               label: 'Batal',
               outlined: true,
-              onPressed: () => Get.back(),
+              onPressed: () => Navigator.of(context).pop(),
             ),
             const SizedBox(height: 32),
           ],
@@ -323,6 +326,195 @@ class _SectionCard extends StatelessWidget {
           Padding(padding: const EdgeInsets.all(16), child: child),
         ],
       ),
+    );
+  }
+}
+
+// ── Harga Manual Section (WIP / disabled) ─────────────────
+class _HargaManualSection extends StatelessWidget {
+  const _HargaManualSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        // ── Card utama (visual only, semua disabled) ──
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.surfaceLowest,
+            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+            border: Border.all(color: AppColors.outlineVariant),
+            boxShadow: AppTheme.cardShadow,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Row(
+                  children: [
+                    Text('Harga Manual', style: AppTextStyles.titleMd),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF3E0),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFFFB74D)),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.construction_rounded,
+                            size: 11,
+                            color: Color(0xFFE65100),
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Dalam Pengembangan',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFFE65100),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Disclaimer banner
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF8E1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFFFCC02)),
+                      ),
+                      child: const Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.info_outline_rounded,
+                            size: 18,
+                            color: Color(0xFFF57F17),
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Fitur input harga manual masih dalam tahap pengembangan dan belum dapat digunakan. Fitur ini akan segera tersedia pada versi berikutnya.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF5D4037),
+                                height: 1.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Field Harga per Satuan (disabled)
+                    IgnorePointer(
+                      child: TextFormField(
+                        enabled: false,
+                        decoration: InputDecoration(
+                          labelText: 'Harga per Satuan (Rp)',
+                          hintText: 'Contoh: 5000',
+                          prefixIcon: const Icon(
+                            Icons.sell_outlined,
+                            color: AppColors.outline,
+                          ),
+                          filled: true,
+                          fillColor: AppColors.surfaceLow,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusMd),
+                            borderSide: const BorderSide(
+                              color: AppColors.outlineVariant,
+                            ),
+                          ),
+                          disabledBorder: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusMd),
+                            borderSide: const BorderSide(
+                              color: AppColors.outlineVariant,
+                            ),
+                          ),
+                        ),
+                        style: AppTextStyles.bodyLg.copyWith(
+                          color: AppColors.outline,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Preview total (disabled, placeholder)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceLow,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                        border: Border.all(color: AppColors.outlineVariant),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Estimasi Total:',
+                            style: AppTextStyles.bodyMd.copyWith(
+                              color: AppColors.outline,
+                            ),
+                          ),
+                          Text(
+                            'Rp —',
+                            style: AppTextStyles.titleMd.copyWith(
+                              color: AppColors.outline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // ── Overlay transparan untuk block semua interaksi ──
+        Positioned.fill(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+            child: AbsorbPointer(
+              child: Container(color: Colors.transparent),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

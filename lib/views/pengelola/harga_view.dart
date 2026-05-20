@@ -24,104 +24,166 @@ class HargaView extends GetView<HargaController> {
           onPressed: () => Get.back(),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add_rounded),
-            onPressed: () => _showFormSheet(context, null),
-            tooltip: 'Tambah Harga',
+          // Tombol + disabled (WIP)
+          IgnorePointer(
+            child: Opacity(
+              opacity: 0.35,
+              child: IconButton(
+                icon: const Icon(Icons.add_rounded),
+                onPressed: null,
+                tooltip: 'Dalam Pengembangan',
+              ),
+            ),
           ),
         ],
       ),
-      body: Obx(() {
-        if (controller.isLoading.value) return const LoadingWidget();
-
-        if (controller.listHarga.isEmpty) {
-          return EmptyState(
-            icon: Icons.sell_outlined,
-            message: 'Belum ada data harga.\nTambahkan harga untuk tiap jenis sampah.',
-            actionLabel: 'Tambah Harga',
-            onAction: () => _showFormSheet(context, null),
-          );
-        }
-
-        return RefreshIndicator(
-          onRefresh: controller.fetchHarga,
-          color: AppColors.primary,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // Info banner
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.infoContainer,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.info_outline_rounded,
-                        color: AppColors.info, size: 18),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Harga akan otomatis tersimpan saat input data sampah.',
-                        style: AppTextStyles.bodyMd
-                            .copyWith(color: AppColors.info),
+      body: Column(
+        children: [
+          // Banner disclaimer WIP
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF8E1),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFFFCC02)),
+            ),
+            child: const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.construction_rounded,
+                    size: 20, color: Color(0xFFF57F17)),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Fitur Dalam Pengembangan',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFE65100),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // List harga per kategori
-              ...controller.hargaPerKategori.entries.map((entry) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header kategori
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryContainer,
-                              borderRadius:
-                                  BorderRadius.circular(AppTheme.radiusFull),
-                            ),
-                            child: Text(
-                              entry.key,
-                              style: AppTextStyles.labelSm.copyWith(
-                                  color: AppColors.onPrimaryContainer),
-                            ),
-                          ),
-                        ],
+                      SizedBox(height: 4),
+                      Text(
+                        'Halaman Daftar Harga Sampah masih dalam tahap pengembangan dan belum dapat digunakan. Fitur ini akan segera tersedia pada versi berikutnya.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF5D4037),
+                          height: 1.5,
+                        ),
                       ),
-                    ),
-                    // Cards harga
-                    ...entry.value.map((harga) => Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: _HargaCard(
-                            harga: harga,
-                            onEdit: () => _showFormSheet(context, harga),
-                            onDelete: () => controller.deleteHarga(harga),
-                          ),
-                        )),
-                    const SizedBox(height: 8),
-                  ],
-                );
-              }),
-            ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-        );
-      }),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showFormSheet(context, null),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.onPrimary,
-        child: const Icon(Icons.add_rounded),
+
+          // Konten WIP (visual only, semua disabled)
+          Expanded(
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: 0.45,
+                child: Obx(() {
+                  if (controller.isLoading.value) return const LoadingWidget();
+
+                  if (controller.listHarga.isEmpty) {
+                    return EmptyState(
+                      icon: Icons.sell_outlined,
+                      message:
+                          'Belum ada data harga.\nTambahkan harga untuk tiap jenis sampah.',
+                      actionLabel: 'Tambah Harga',
+                      onAction: () {},
+                    );
+                  }
+
+                  return RefreshIndicator(
+                    onRefresh: controller.fetchHarga,
+                    color: AppColors.primary,
+                    child: ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        // Info banner
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.infoContainer,
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusMd),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.info_outline_rounded,
+                                  color: AppColors.info, size: 18),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Harga akan otomatis tersimpan saat input data sampah.',
+                                  style: AppTextStyles.bodyMd
+                                      .copyWith(color: AppColors.info),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        ...controller.hargaPerKategori.entries.map((entry) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryContainer,
+                                    borderRadius: BorderRadius.circular(
+                                        AppTheme.radiusFull),
+                                  ),
+                                  child: Text(
+                                    entry.key,
+                                    style: AppTextStyles.labelSm.copyWith(
+                                        color: AppColors.onPrimaryContainer),
+                                  ),
+                                ),
+                              ),
+                              ...entry.value.map((harga) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 10),
+                                    child: _HargaCard(
+                                      harga: harga,
+                                      onEdit: () {},
+                                      onDelete: () {},
+                                    ),
+                                  )),
+                              const SizedBox(height: 8),
+                            ],
+                          );
+                        }),
+                      ],
+                    ),
+                  );
+                }),
+              ),
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: IgnorePointer(
+        child: Opacity(
+          opacity: 0.35,
+          child: FloatingActionButton(
+            onPressed: null,
+            backgroundColor: AppColors.primary,
+            foregroundColor: AppColors.onPrimary,
+            child: const Icon(Icons.add_rounded),
+          ),
+        ),
       ),
     );
   }

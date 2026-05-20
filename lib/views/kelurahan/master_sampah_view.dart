@@ -8,7 +8,6 @@ import '../../controllers/kelurahan/master_sampah_controller.dart';
 import '../../core/widgets/app_widgets.dart';
 import '../../models/kategori_model.dart';
 import '../../models/sub_kategori_model.dart';
-import '../../models/jenis_sampah_model.dart';
 import '../../models/satuan_model.dart';
 
 class MasterSampahView extends GetView<MasterSampahController> {

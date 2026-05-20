@@ -1,48 +1,52 @@
-import 'kategori_model.dart';
+import 'sub_kategori_model.dart';
 
-class SubKategoriModel {
+class TipeSampahModel {
   final String id;
-  final String kategoriId;
+  final String subKategoriId;
   final String nama;
   final String? deskripsi;
+  final int urutan;
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
 
   // Relasi (opsional, ada bila di-join)
-  final KategoriModel? kategori;
+  final SubKategoriModel? subKategori;
 
-  const SubKategoriModel({
+  const TipeSampahModel({
     required this.id,
-    required this.kategoriId,
+    required this.subKategoriId,
     required this.nama,
     this.deskripsi,
+    this.urutan = 0,
     required this.isActive,
     required this.createdAt,
     required this.updatedAt,
-    this.kategori,
+    this.subKategori,
   });
 
-  factory SubKategoriModel.fromJson(Map<String, dynamic> json) {
-    return SubKategoriModel(
+  factory TipeSampahModel.fromJson(Map<String, dynamic> json) {
+    return TipeSampahModel(
       id: json['id'] as String,
-      kategoriId: json['kategori_id'] as String,
+      subKategoriId: json['sub_kategori_id'] as String,
       nama: json['nama'] as String,
       deskripsi: json['deskripsi'] as String?,
+      urutan: json['urutan'] as int? ?? 0,
       isActive: json['is_active'] as bool? ?? true,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      kategori: json['kategori_sampah'] != null
-          ? KategoriModel.fromJson(
-              json['kategori_sampah'] as Map<String, dynamic>)
+      subKategori: json['sub_kategori_sampah'] != null
+          ? SubKategoriModel.fromJson(
+              json['sub_kategori_sampah'] as Map<String, dynamic>)
           : null,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'kategori_id': kategoriId,
+        'sub_kategori_id': subKategoriId,
         'nama': nama,
         'deskripsi': deskripsi,
+        'urutan': urutan,
         'is_active': isActive,
       };
 }

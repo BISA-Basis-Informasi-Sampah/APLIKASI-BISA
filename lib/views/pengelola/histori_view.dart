@@ -21,32 +21,37 @@ class HistoriView extends GetView<HistoriController> {
         title: const Text('Histori Pengelolaan'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Get.back(),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
           // Filter
-          Obx(() => IconButton(
-                icon: Stack(
-                  children: [
-                    const Icon(Icons.filter_list_rounded),
-                    if (controller.isFilterActive)
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: AppColors.error,
-                            shape: BoxShape.circle,
-                          ),
+          Obx(() {
+            final isActive = controller.filterKategoriId.value.isNotEmpty ||
+                controller.filterTanggalMulai.value != null ||
+                controller.filterTanggalAkhir.value != null;
+            return IconButton(
+              icon: Stack(
+                children: [
+                  const Icon(Icons.filter_list_rounded),
+                  if (isActive)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: AppColors.error,
+                          shape: BoxShape.circle,
                         ),
                       ),
-                  ],
-                ),
-                onPressed: () => _showFilterSheet(context),
-                tooltip: 'Filter',
-              )),
+                    ),
+                ],
+              ),
+              onPressed: () => _showFilterSheet(context),
+              tooltip: 'Filter',
+            );
+          }),
         ],
       ),
       body: Column(
@@ -191,6 +196,7 @@ class _FilterSheet extends StatelessWidget {
           const SizedBox(height: 8),
           Obx(() => Wrap(
                 spacing: 8,
+                runSpacing: 8,
                 children: [
                   _FilterChip(
                     label: 'Semua',
@@ -243,7 +249,7 @@ class _FilterSheet extends StatelessWidget {
                   outlined: true,
                   onPressed: () {
                     controller.resetFilter();
-                    Get.back();
+                    Navigator.of(context).pop();
                   },
                 ),
               ),
@@ -253,7 +259,7 @@ class _FilterSheet extends StatelessWidget {
                   label: 'Terapkan',
                   onPressed: () {
                     controller.applyFilter();
-                    Get.back();
+                    Navigator.of(context).pop();
                   },
                 ),
               ),

@@ -14,6 +14,7 @@ class HistoriController extends GetxController {
   final searchQuery = ''.obs;
 
   final listHistori = <PengelolaanSampahModel>[].obs;
+  final _rawHistori = <PengelolaanSampahModel>[];
   final listKategoriFilter = <KategoriModel>[].obs;
   final isLoading = false.obs;
 
@@ -35,6 +36,26 @@ class HistoriController extends GetxController {
     super.onInit();
     fetchHistori();
     _fetchKategori();
+    // Trigger filter lokal saat search berubah (tanpa fetch ulang ke server)
+    debounce(
+      searchQuery,
+      (_) => _applySearchFilter(),
+      time: const Duration(milliseconds: 300),
+    );
+  }
+
+  // Filter lokal dari _rawHistori berdasarkan searchQuery
+  void _applySearchFilter() {
+    if (searchQuery.value.isEmpty) {
+      listHistori.value = List.from(_rawHistori);
+    } else {
+      final q = searchQuery.value.toLowerCase();
+      listHistori.value = _rawHistori.where((item) {
+        return item.namaItem.toLowerCase().contains(q) ||
+            item.breadcrumb.toLowerCase().contains(q) ||
+            (item.catatan?.toLowerCase().contains(q) ?? false);
+      }).toList();
+    }
   }
 
   void onSearch(String value) => searchQuery.value = value;
@@ -60,7 +81,8 @@ class HistoriController extends GetxController {
             *,
             kategori_sampah(*),
             sub_kategori_sampah(*),
-            jenis_sampah(*),
+            tipe_sampah(*),
+            jenis_sampah(*, tipe_sampah(*)),
             satuan(*)
           ''')
           .eq('bank_sampah_id', bankSampahId);
@@ -88,16 +110,10 @@ class HistoriController extends GetxController {
           .map((e) => PengelolaanSampahModel.fromJson(e))
           .toList();
 
-      if (searchQuery.value.isNotEmpty) {
-        final q = searchQuery.value.toLowerCase();
-        list = list.where((item) {
-          return item.namaItem.toLowerCase().contains(q) ||
-              item.breadcrumb.toLowerCase().contains(q) ||
-              (item.catatan?.toLowerCase().contains(q) ?? false);
-        }).toList();
-      }
-
-      listHistori.value = list;
+      _rawHistori
+        ..clear()
+        ..addAll(list);
+      _applySearchFilter();
     } catch (e) {
       Get.snackbar('Error', 'Gagal memuat histori.');
     } finally {
@@ -154,17 +170,18 @@ class HistoriController extends GetxController {
   }
 
   Future<void> deleteItem(PengelolaanSampahModel data) async {
-    final confirm = await Get.dialog<bool>(
-      AlertDialog(
+    final confirm = await showDialog<bool>(
+      context: Get.context!,
+      builder: (ctx) => AlertDialog(
         title: const Text('Hapus Data'),
         content: const Text('Yakin ingin menghapus data ini?'),
         actions: [
           TextButton(
-            onPressed: () => Get.back(result: false),
+            onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text('Batal'),
           ),
           TextButton(
-            onPressed: () => Get.back(result: true),
+            onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Hapus',
                 style: TextStyle(color: Colors.red)),
           ),
@@ -178,6 +195,7 @@ class HistoriController extends GetxController {
           .from(SupabaseConstants.tablePengelolaanSampah)
           .delete()
           .eq('id', data.id);
+      _rawHistori.removeWhere((e) => e.id == data.id);
       listHistori.removeWhere((e) => e.id == data.id);
       Get.snackbar('Berhasil', 'Data berhasil dihapus.');
     } catch (e) {

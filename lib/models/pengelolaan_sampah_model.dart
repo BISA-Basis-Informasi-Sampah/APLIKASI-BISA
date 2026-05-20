@@ -4,6 +4,7 @@ import 'jenis_sampah_model.dart';
 import 'satuan_model.dart';
 import 'profile_model.dart';
 import 'bank_sampah_model.dart';
+import 'tipe_sampah_model.dart';
 
 class PengelolaanSampahModel {
   final String id;
@@ -11,6 +12,7 @@ class PengelolaanSampahModel {
   final String profileId;
   final String kategoriId;
   final String? subKategoriId;
+  final String? tipeId;
   final String? jenisSampahId;
   final double jumlah;
   final String satuanId;
@@ -24,6 +26,7 @@ class PengelolaanSampahModel {
   // Relasi (opsional, ada bila di-join)
   final KategoriModel? kategori;
   final SubKategoriModel? subKategori;
+  final TipeSampahModel? tipe;
   final JenisSampahModel? jenisSampah;
   final SatuanModel? satuan;
   final ProfileModel? profile;
@@ -35,6 +38,7 @@ class PengelolaanSampahModel {
     required this.profileId,
     required this.kategoriId,
     this.subKategoriId,
+    this.tipeId,
     this.jenisSampahId,
     required this.jumlah,
     required this.satuanId,
@@ -46,6 +50,7 @@ class PengelolaanSampahModel {
     required this.updatedAt,
     this.kategori,
     this.subKategori,
+    this.tipe,
     this.jenisSampah,
     this.satuan,
     this.profile,
@@ -55,16 +60,18 @@ class PengelolaanSampahModel {
   // Label nama item berdasarkan level yang diisi
   String get namaItem {
     if (jenisSampah != null) return jenisSampah!.nama;
+    if (tipe != null) return tipe!.nama;
     if (subKategori != null) return subKategori!.nama;
     if (kategori != null) return kategori!.nama;
     return '-';
   }
 
-  // Breadcrumb: Anorganik > Plastik > PP
+  // Breadcrumb: Anorganik > Plastik > PET > Botol air mineral
   String get breadcrumb {
     final parts = <String>[];
     if (kategori != null) parts.add(kategori!.nama);
     if (subKategori != null) parts.add(subKategori!.nama);
+    if (tipe != null) parts.add(tipe!.nama);
     if (jenisSampah != null) parts.add(jenisSampah!.nama);
     return parts.join(' > ');
   }
@@ -76,6 +83,7 @@ class PengelolaanSampahModel {
       profileId: json['profile_id'] as String,
       kategoriId: json['kategori_id'] as String,
       subKategoriId: json['sub_kategori_id'] as String?,
+      tipeId: json['tipe_id'] as String?,
       jenisSampahId: json['jenis_sampah_id'] as String?,
       jumlah: (json['jumlah'] as num).toDouble(),
       satuanId: json['satuan_id'] as String,
@@ -97,6 +105,10 @@ class PengelolaanSampahModel {
       subKategori: json['sub_kategori_sampah'] != null
           ? SubKategoriModel.fromJson(
               json['sub_kategori_sampah'] as Map<String, dynamic>)
+          : null,
+      tipe: json['tipe_sampah'] != null
+          ? TipeSampahModel.fromJson(
+              json['tipe_sampah'] as Map<String, dynamic>)
           : null,
       jenisSampah: json['jenis_sampah'] != null
           ? JenisSampahModel.fromJson(
@@ -120,6 +132,7 @@ class PengelolaanSampahModel {
         'profile_id': profileId,
         'kategori_id': kategoriId,
         'sub_kategori_id': subKategoriId,
+        'tipe_id': tipeId,
         'jenis_sampah_id': jenisSampahId,
         'jumlah': jumlah,
         'satuan_id': satuanId,

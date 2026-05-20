@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../app/routes/app_routes.dart';
 import '../../app/themes/app_colors.dart';
 import '../../app/themes/app_text_styles.dart';
@@ -44,20 +43,11 @@ class LoginView extends GetView<AuthController> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       // Logo
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryContainer,
-                          borderRadius: BorderRadius.circular(
-                            AppTheme.radiusLg,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.eco_rounded,
-                          color: AppColors.onPrimaryContainer,
-                          size: 36,
-                        ),
+                      Image.asset(
+                        'assets/images/logo.png', // sesuaikan path dengan lokasi file logo kamu
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.contain,
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -156,13 +146,6 @@ class LoginView extends GetView<AuthController> {
                         ],
                       ),
                       const SizedBox(height: 16),
-
-                      Text(
-                        'Bank Informasi Sampah v1.0',
-                        style: AppTextStyles.labelSm.copyWith(
-                          color: AppColors.outline,
-                        ),
-                      ),
                     ],
                   ),
                 ),

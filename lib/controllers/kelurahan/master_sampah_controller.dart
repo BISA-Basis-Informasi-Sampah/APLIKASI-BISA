@@ -1,45 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/services/supabase_service.dart';
 import '../../core/constants/supabase_constants.dart';
 import '../../models/kategori_model.dart';
 import '../../models/sub_kategori_model.dart';
+import '../../models/tipe_sampah_model.dart';
 import '../../models/jenis_sampah_model.dart';
 import '../../models/satuan_model.dart';
 
 class MasterSampahController extends GetxController {
-  // Tab aktif: 0=Kategori, 1=Sub Kategori, 2=Jenis, 3=Satuan
+  // Tab aktif: 0=Kategori, 1=Sub Kategori, 2=Tipe, 3=Jenis, 4=Satuan
   final activeTab = 0.obs;
 
   // Data
-  final listKategori = <KategoriModel>[].obs;
+  final listKategori    = <KategoriModel>[].obs;
   final listSubKategori = <SubKategoriModel>[].obs;
-  final listJenis = <JenisSampahModel>[].obs;
-  final listSatuan = <SatuanModel>[].obs;
+  final listTipe        = <TipeSampahModel>[].obs;   // ← BARU
+  final listJenis       = <JenisSampahModel>[].obs;
+  final listSatuan      = <SatuanModel>[].obs;
 
   // Dropdown untuk form
-  final listKategoriDropdown = <KategoriModel>[].obs;
+  final listKategoriDropdown    = <KategoriModel>[].obs;
   final listSubKategoriDropdown = <SubKategoriModel>[].obs;
+  final listTipeDropdown        = <TipeSampahModel>[].obs;   // ← BARU
 
   final isLoading = false.obs;
-  final isSaving = false.obs;
+  final isSaving  = false.obs;
 
   // Form controllers
-  final namaController = TextEditingController();
-  final deskripsiController = TextEditingController();
-  final singkatanController = TextEditingController();
-  final formKey = GlobalKey<FormState>();
+  final namaController       = TextEditingController();
+  final deskripsiController  = TextEditingController();
+  final singkatanController  = TextEditingController();
+  final formKey              = GlobalKey<FormState>();
 
-  final selectedKategoriForm = Rx<KategoriModel?>(null);
+  final selectedKategoriForm    = Rx<KategoriModel?>(null);
   final selectedSubKategoriForm = Rx<SubKategoriModel?>(null);
-  final selectedSatuanForm = Rx<SatuanModel?>(null);
+  final selectedTipeForm        = Rx<TipeSampahModel?>(null);   // ← BARU
+  final selectedSatuanForm      = Rx<SatuanModel?>(null);
 
   @override
   void onInit() {
     super.onInit();
     fetchAll();
-    ever(selectedKategoriForm, (_) => _fetchSubKategoriDropdown());
+    ever(selectedKategoriForm,    (_) => _fetchSubKategoriDropdown());
+    ever(selectedSubKategoriForm, (_) => _fetchTipeDropdown());   // ← BARU
   }
 
   Future<void> fetchAll() async {
@@ -48,6 +54,7 @@ class MasterSampahController extends GetxController {
       await Future.wait([
         _fetchKategori(),
         _fetchSubKategori(),
+        _fetchTipe(),
         _fetchJenis(),
         _fetchSatuan(),
       ]);
@@ -60,7 +67,7 @@ class MasterSampahController extends GetxController {
     final data = await SupabaseService.client
         .from(SupabaseConstants.tableKategoriSampah)
         .select()
-        .order('nama');
+        .order('urutan');
     listKategori.value =
         (data as List).map((e) => KategoriModel.fromJson(e)).toList();
     listKategoriDropdown.value = listKategori;
@@ -69,17 +76,26 @@ class MasterSampahController extends GetxController {
   Future<void> _fetchSubKategori() async {
     final data = await SupabaseService.client
         .from(SupabaseConstants.tableSubKategoriSampah)
-        .select('*, kategori_sampah(nama)')
-        .order('nama');
+        .select('*, kategori_sampah(*)')
+        .order('urutan');
     listSubKategori.value =
         (data as List).map((e) => SubKategoriModel.fromJson(e)).toList();
+  }
+
+  Future<void> _fetchTipe() async {
+    final data = await SupabaseService.client
+        .from(SupabaseConstants.tableTipeSampah)
+        .select('*, sub_kategori_sampah(*)')
+        .order('urutan');
+    listTipe.value =
+        (data as List).map((e) => TipeSampahModel.fromJson(e)).toList();
   }
 
   Future<void> _fetchJenis() async {
     final data = await SupabaseService.client
         .from(SupabaseConstants.tableJenisSampah)
-        .select('*, sub_kategori_sampah(nama, kategori_sampah(nama)), satuan(*)')
-        .order('nama');
+        .select('*, sub_kategori_sampah(*, kategori_sampah(*)), tipe_sampah(*), kategori_sampah(*), satuan(*)')
+        .order('urutan');
     listJenis.value =
         (data as List).map((e) => JenisSampahModel.fromJson(e)).toList();
   }
@@ -96,15 +112,32 @@ class MasterSampahController extends GetxController {
   Future<void> _fetchSubKategoriDropdown() async {
     if (selectedKategoriForm.value == null) {
       listSubKategoriDropdown.clear();
+      listTipeDropdown.clear();
       return;
     }
     final data = await SupabaseService.client
         .from(SupabaseConstants.tableSubKategoriSampah)
         .select()
         .eq('kategori_id', selectedKategoriForm.value!.id)
-        .order('nama');
+        .order('urutan');
     listSubKategoriDropdown.value =
         (data as List).map((e) => SubKategoriModel.fromJson(e)).toList();
+    listTipeDropdown.clear();
+    selectedSubKategoriForm.value = null;
+    selectedTipeForm.value = null;
+  }
+
+  Future<void> _fetchTipeDropdown() async {
+    selectedTipeForm.value = null;
+    listTipeDropdown.clear();
+    if (selectedSubKategoriForm.value == null) return;
+    final data = await SupabaseService.client
+        .from(SupabaseConstants.tableTipeSampah)
+        .select()
+        .eq('sub_kategori_id', selectedSubKategoriForm.value!.id)
+        .order('urutan');
+    listTipeDropdown.value =
+        (data as List).map((e) => TipeSampahModel.fromJson(e)).toList();
   }
 
   void resetForm() {
@@ -112,10 +145,15 @@ class MasterSampahController extends GetxController {
     namaController.clear();
     deskripsiController.clear();
     singkatanController.clear();
-    selectedKategoriForm.value = null;
+    selectedKategoriForm.value    = null;
     selectedSubKategoriForm.value = null;
-    selectedSatuanForm.value = null;
+    selectedTipeForm.value        = null;
+    selectedSatuanForm.value      = null;
+    listSubKategoriDropdown.clear();
+    listTipeDropdown.clear();
   }
+
+  // ── Simpan ─────────────────────────────────────────────────────────────────
 
   Future<void> simpanKategori() async {
     if (!formKey.currentState!.validate()) return;
@@ -133,7 +171,8 @@ class MasterSampahController extends GetxController {
       resetForm();
       Get.snackbar('Berhasil', 'Kategori berhasil ditambahkan.');
     } catch (e) {
-      Get.snackbar('Gagal', 'Gagal menyimpan kategori.');
+      Get.snackbar('Gagal',
+          'Gagal menyimpan kategori: ${_mapPostgrestError(e)}');
     } finally {
       isSaving.value = false;
     }
@@ -160,13 +199,15 @@ class MasterSampahController extends GetxController {
       resetForm();
       Get.snackbar('Berhasil', 'Sub kategori berhasil ditambahkan.');
     } catch (e) {
-      Get.snackbar('Gagal', 'Gagal menyimpan sub kategori.');
+      Get.snackbar('Gagal',
+          'Gagal menyimpan sub kategori: ${_mapPostgrestError(e)}');
     } finally {
       isSaving.value = false;
     }
   }
 
-  Future<void> simpanJenis() async {
+  // ← BARU
+  Future<void> simpanTipe() async {
     if (!formKey.currentState!.validate()) return;
     if (selectedSubKategoriForm.value == null) {
       Get.snackbar('Validasi', 'Pilih sub kategori terlebih dahulu.');
@@ -175,10 +216,36 @@ class MasterSampahController extends GetxController {
     isSaving.value = true;
     try {
       await SupabaseService.client
-          .from(SupabaseConstants.tableJenisSampah)
+          .from(SupabaseConstants.tableTipeSampah)
           .insert({
         'sub_kategori_id': selectedSubKategoriForm.value!.id,
         'nama': namaController.text.trim(),
+        'deskripsi': deskripsiController.text.trim().isEmpty
+            ? null
+            : deskripsiController.text.trim(),
+      });
+      await _fetchTipe();
+      resetForm();
+      Get.snackbar('Berhasil', 'Tipe berhasil ditambahkan.');
+    } catch (e) {
+      Get.snackbar('Gagal',
+          'Gagal menyimpan tipe: ${_mapPostgrestError(e)}');
+    } finally {
+      isSaving.value = false;
+    }
+  }
+
+  Future<void> simpanJenis() async {
+    if (!formKey.currentState!.validate()) return;
+    isSaving.value = true;
+    try {
+      await SupabaseService.client
+          .from(SupabaseConstants.tableJenisSampah)
+          .insert({
+        'sub_kategori_id': selectedSubKategoriForm.value?.id,
+        'tipe_id':         selectedTipeForm.value?.id,
+        'kategori_id':     selectedKategoriForm.value?.id,
+        'nama':            namaController.text.trim(),
         'deskripsi': deskripsiController.text.trim().isEmpty
             ? null
             : deskripsiController.text.trim(),
@@ -188,7 +255,8 @@ class MasterSampahController extends GetxController {
       resetForm();
       Get.snackbar('Berhasil', 'Jenis sampah berhasil ditambahkan.');
     } catch (e) {
-      Get.snackbar('Gagal', 'Gagal menyimpan jenis sampah.');
+      Get.snackbar('Gagal',
+          'Gagal menyimpan jenis sampah: ${_mapPostgrestError(e)}');
     } finally {
       isSaving.value = false;
     }
@@ -198,21 +266,22 @@ class MasterSampahController extends GetxController {
     if (!formKey.currentState!.validate()) return;
     isSaving.value = true;
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableSatuan)
-          .insert({
-        'nama': namaController.text.trim(),
-        'singkatan': singkatanController.text.trim(),
+      await SupabaseService.client.from(SupabaseConstants.tableSatuan).insert({
+        'nama':       namaController.text.trim(),
+        'singkatan':  singkatanController.text.trim(),
       });
       await _fetchSatuan();
       resetForm();
       Get.snackbar('Berhasil', 'Satuan berhasil ditambahkan.');
     } catch (e) {
-      Get.snackbar('Gagal', 'Gagal menyimpan satuan.');
+      Get.snackbar('Gagal',
+          'Gagal menyimpan satuan: ${_mapPostgrestError(e)}');
     } finally {
       isSaving.value = false;
     }
   }
+
+  // ── Hapus ──────────────────────────────────────────────────────────────────
 
   Future<void> hapusKategori(String id) async {
     try {
@@ -223,7 +292,8 @@ class MasterSampahController extends GetxController {
       listKategori.removeWhere((e) => e.id == id);
       Get.snackbar('Berhasil', 'Kategori dihapus.');
     } catch (e) {
-      Get.snackbar('Gagal', 'Kategori tidak bisa dihapus karena masih digunakan.');
+      Get.snackbar('Gagal',
+          'Kategori tidak bisa dihapus karena masih digunakan.');
     }
   }
 
@@ -236,7 +306,23 @@ class MasterSampahController extends GetxController {
       listSubKategori.removeWhere((e) => e.id == id);
       Get.snackbar('Berhasil', 'Sub kategori dihapus.');
     } catch (e) {
-      Get.snackbar('Gagal', 'Sub kategori tidak bisa dihapus karena masih digunakan.');
+      Get.snackbar('Gagal',
+          'Sub kategori tidak bisa dihapus karena masih digunakan.');
+    }
+  }
+
+  // ← BARU
+  Future<void> hapusTipe(String id) async {
+    try {
+      await SupabaseService.client
+          .from(SupabaseConstants.tableTipeSampah)
+          .delete()
+          .eq('id', id);
+      listTipe.removeWhere((e) => e.id == id);
+      Get.snackbar('Berhasil', 'Tipe dihapus.');
+    } catch (e) {
+      Get.snackbar('Gagal',
+          'Tipe tidak bisa dihapus karena masih digunakan.');
     }
   }
 
@@ -249,7 +335,8 @@ class MasterSampahController extends GetxController {
       listJenis.removeWhere((e) => e.id == id);
       Get.snackbar('Berhasil', 'Jenis sampah dihapus.');
     } catch (e) {
-      Get.snackbar('Gagal', 'Jenis sampah tidak bisa dihapus karena masih digunakan.');
+      Get.snackbar('Gagal',
+          'Jenis sampah tidak bisa dihapus karena masih digunakan.');
     }
   }
 
@@ -262,8 +349,17 @@ class MasterSampahController extends GetxController {
       listSatuan.removeWhere((e) => e.id == id);
       Get.snackbar('Berhasil', 'Satuan dihapus.');
     } catch (e) {
-      Get.snackbar('Gagal', 'Satuan tidak bisa dihapus karena masih digunakan.');
+      Get.snackbar('Gagal',
+          'Satuan tidak bisa dihapus karena masih digunakan.');
     }
+  }
+
+  String _mapPostgrestError(dynamic e) {
+    if (e is PostgrestException) {
+      if (e.code == '23505') return 'Data dengan nama tersebut sudah terdaftar.';
+      return e.message;
+    }
+    return e.toString();
   }
 
   @override

@@ -27,7 +27,6 @@ class DetailBankSampahView extends GetView<MonitoringController> {
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Get.back(),
         ),
-
       ),
       body: Obx(() {
         final bank = controller.selectedBankSampah.value;
@@ -52,7 +51,8 @@ class DetailBankSampahView extends GetView<MonitoringController> {
                       width: 56,
                       height: 56,
                       decoration: BoxDecoration(
-                        color: AppColors.primaryContainer.withOpacity(0.15),
+                        // FIX Bug 1: withOpacity deprecated → withValues
+                        color: AppColors.primaryContainer.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                       ),
                       child: const Icon(
@@ -131,7 +131,8 @@ class DetailBankSampahView extends GetView<MonitoringController> {
                         value: FormatHelper.number(controller.statJumlah.value),
                         icon: Icons.scale_outlined,
                         color: AppColors.secondary,
-                        bgColor: AppColors.secondaryContainer.withOpacity(0.5),
+                        // FIX Bug 1: withOpacity deprecated → withValues
+                        bgColor: AppColors.secondaryContainer.withValues(alpha: 0.5),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -143,7 +144,8 @@ class DetailBankSampahView extends GetView<MonitoringController> {
                         ),
                         icon: Icons.payments_outlined,
                         color: AppColors.primary,
-                        bgColor: AppColors.onPrimaryContainer.withOpacity(0.5),
+                        // FIX Bug 1: withOpacity deprecated → withValues
+                        bgColor: AppColors.onPrimaryContainer.withValues(alpha: 0.5),
                       ),
                     ),
                   ],
@@ -259,7 +261,8 @@ class _TransaksiCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppColors.primaryContainer.withOpacity(0.12),
+              // FIX Bug 1: withOpacity deprecated → withValues
+              color: AppColors.primaryContainer.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
             ),
             child: const Icon(

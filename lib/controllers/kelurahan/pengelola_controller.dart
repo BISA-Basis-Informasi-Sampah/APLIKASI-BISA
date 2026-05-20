@@ -1,6 +1,6 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/services/supabase_service.dart';
 import '../../core/constants/supabase_constants.dart';
@@ -25,8 +25,13 @@ class PengelolaController extends GetxController {
 
   final isLoading = false.obs;
   final isSaving = false.obs;
-  final isApprovingId = ''.obs; // id profil yang sedang diproses approve
+  final isApprovingId = ''.obs;
   final isPasswordVisible = false.obs;
+
+  // ── State untuk sheet approve ────────────────────────────────────────────────
+  // Menyimpan pilihan bank sampah sementara saat sheet approve dibuka.
+  // Dipakai oleh sheet agar Obx bisa reaktif dengan benar.
+  final approveSelectedIds = <String>[].obs;
 
   void togglePassword() => isPasswordVisible.value = !isPasswordVisible.value;
 
@@ -37,6 +42,23 @@ class PengelolaController extends GetxController {
     passwordController.clear();
     noHpController.clear();
     selectedBankSampahIds.clear();
+  }
+
+  /// Siapkan state pilihan bank sampah untuk sheet approve.
+  /// Harus dipanggil sebelum membuka sheet approve.
+  void initApproveSheet(ProfileModel pengelola) {
+    // Pre-select pilihan bank sampah dari registrasi
+    approveSelectedIds.value = List<String>.from(pengelola.bankSampahPilihan);
+  }
+
+  void toggleApproveBank(String bankId, bool selected) {
+    if (selected) {
+      if (!approveSelectedIds.contains(bankId)) {
+        approveSelectedIds.add(bankId);
+      }
+    } else {
+      approveSelectedIds.remove(bankId);
+    }
   }
 
   @override
@@ -62,8 +84,6 @@ class PengelolaController extends GetxController {
         .order('nama_lengkap');
 
     final semua = (data as List).map((e) => ProfileModel.fromJson(e)).toList();
-
-    // Pisahkan verified vs pending
     listPengelola.value = semua.where((p) => p.isVerified).toList();
     listPending.value = semua.where((p) => !p.isVerified).toList();
   }
@@ -74,9 +94,8 @@ class PengelolaController extends GetxController {
         .select()
         .eq('is_active', true)
         .order('nama');
-    listBankSampah.value = (data as List)
-        .map((e) => BankSampahModel.fromJson(e))
-        .toList();
+    listBankSampah.value =
+        (data as List).map((e) => BankSampahModel.fromJson(e)).toList();
   }
 
   Future<List<String>> getBankSampahPengelola(String profileId) async {
@@ -90,8 +109,6 @@ class PengelolaController extends GetxController {
   void goToForm() => Get.toNamed(AppRoutes.formPengelola);
 
   // ─── Approve pengelola yang daftar mandiri ────────────────────────────────────
-  // Dipanggil setelah kelurahan memilih bank sampah yang akan di-assign.
-  // Set is_verified=true + insert relasi bank sampah + kosongkan bank_sampah_pilihan.
   Future<void> approvePengelola(
     String profileId,
     List<String> bankSampahIds,
@@ -127,7 +144,11 @@ class PengelolaController extends GetxController {
           .update({'is_verified': true, 'bank_sampah_pilihan': []})
           .eq('id', profileId);
 
-      await _fetchPengelola();
+      // 4. Update list lokal
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await _fetchPengelola();
+      });
+
       Get.snackbar('Berhasil', 'Pengelola berhasil disetujui.');
     } catch (e) {
       Get.snackbar('Gagal', 'Gagal menyetujui pengelola: ${e.toString()}');
@@ -148,26 +169,55 @@ class PengelolaController extends GetxController {
 
       final authUserId = profileData['auth_user_id'] as String;
 
-      final response = await SupabaseService.client.functions.invoke(
-        'delete-pengelola',
-        body: {'auth_user_id': authUserId, 'profile_id': profileId},
-      );
+      bool deletedViaFunction = false;
+      try {
+        final response = await SupabaseService.client.functions.invoke(
+          'delete-pengelola',
+          body: {'auth_user_id': authUserId, 'profile_id': profileId},
+        );
 
-      if (response.status != 200) {
-        Get.snackbar('Gagal', 'Gagal menolak pendaftaran.');
-        return;
+        if (response.status == 200) {
+          deletedViaFunction = true;
+        } else {
+          final errorMsg = (response.data is Map)
+              ? (response.data['error'] ?? response.data['message'])
+              : response.data?.toString();
+          debugPrint('Edge Function tolak gagal: ${errorMsg ?? response.status}');
+        }
+      } catch (e) {
+        debugPrint('Edge Function tolak error: $e');
+      }
+
+      // Fallback: Hapus langsung dari database jika Edge Function gagal
+      if (!deletedViaFunction) {
+        // Hapus relasi jika ada (opsional tapi aman)
+        await SupabaseService.client
+            .from(SupabaseConstants.tablePengelolaBankSampah)
+            .delete()
+            .eq('profile_id', profileId);
+
+        // Hapus profile
+        await SupabaseService.client
+            .from(SupabaseConstants.tableProfiles)
+            .delete()
+            .eq('id', profileId);
       }
 
       listPending.removeWhere((e) => e.id == profileId);
-      Get.snackbar('Ditolak', 'Pendaftaran pengelola telah ditolak.');
+      Get.snackbar(
+        'Ditolak',
+        deletedViaFunction
+            ? 'Pendaftaran pengelola telah ditolak.'
+            : 'Pendaftaran ditolak (dibersihkan via database).',
+      );
     } catch (e) {
-      Get.snackbar('Gagal', 'Gagal menolak pendaftaran.');
+      Get.snackbar('Gagal', 'Gagal menolak pendaftaran: ${e.toString()}');
     } finally {
       isApprovingId.value = '';
     }
   }
 
-  // ─── Tambah pengelola oleh kelurahan (via Edge Function) ──────────────────────
+  // ─── Tambah pengelola oleh kelurahan ─────────────────────────────────────────
   Future<void> tambahPengelola() async {
     if (!formKey.currentState!.validate()) return;
 
@@ -183,7 +233,6 @@ class PengelolaController extends GetxController {
               ? null
               : noHpController.text.trim(),
           'bank_sampah_ids': selectedBankSampahIds.toList(),
-          // is_verified: true ditangani di dalam Edge Function
         },
       );
 
@@ -210,13 +259,11 @@ class PengelolaController extends GetxController {
   ) async {
     isSaving.value = true;
     try {
-      // 1. Hapus semua relasi lama
       await SupabaseService.client
           .from(SupabaseConstants.tablePengelolaBankSampah)
           .delete()
           .eq('profile_id', profileId);
 
-      // 2. Insert relasi baru
       if (bankSampahIds.isNotEmpty) {
         final relasi = bankSampahIds
             .map((bsId) => {'profile_id': profileId, 'bank_sampah_id': bsId})
@@ -225,13 +272,11 @@ class PengelolaController extends GetxController {
             .from(SupabaseConstants.tablePengelolaBankSampah)
             .insert(relasi);
 
-        // Ada bank sampah → pastikan tetap verified
         await SupabaseService.client
             .from(SupabaseConstants.tableProfiles)
             .update({'is_verified': true})
             .eq('id', profileId);
       } else {
-        // Tidak ada bank sampah → cabut verifikasi
         await SupabaseService.client
             .from(SupabaseConstants.tableProfiles)
             .update({'is_verified': false})
@@ -258,20 +303,49 @@ class PengelolaController extends GetxController {
 
       final authUserId = profileData['auth_user_id'] as String;
 
-      final response = await SupabaseService.client.functions.invoke(
-        'delete-pengelola',
-        body: {'auth_user_id': authUserId, 'profile_id': profileId},
-      );
+      bool deletedViaFunction = false;
+      try {
+        final response = await SupabaseService.client.functions.invoke(
+          'delete-pengelola',
+          body: {'auth_user_id': authUserId, 'profile_id': profileId},
+        );
 
-      if (response.status != 200) {
-        Get.snackbar('Gagal', 'Pengelola gagal dihapus.');
-        return;
+        if (response.status == 200) {
+          deletedViaFunction = true;
+        } else {
+          final errorMsg = (response.data is Map)
+              ? (response.data['error'] ?? response.data['message'])
+              : response.data?.toString();
+          debugPrint('Edge Function hapus gagal: ${errorMsg ?? response.status}');
+        }
+      } catch (e) {
+        debugPrint('Edge Function hapus error: $e');
+      }
+
+      // Fallback: Hapus langsung dari database jika Edge Function gagal
+      if (!deletedViaFunction) {
+        // Hapus relasi di pengelola_bank_sampah
+        await SupabaseService.client
+            .from(SupabaseConstants.tablePengelolaBankSampah)
+            .delete()
+            .eq('profile_id', profileId);
+
+        // Hapus profile
+        await SupabaseService.client
+            .from(SupabaseConstants.tableProfiles)
+            .delete()
+            .eq('id', profileId);
       }
 
       listPengelola.removeWhere((e) => e.id == profileId);
-      Get.snackbar('Berhasil', 'Pengelola berhasil dihapus.');
+      Get.snackbar(
+        'Berhasil',
+        deletedViaFunction
+            ? 'Pengelola berhasil dihapus.'
+            : 'Pengelola dihapus (dibersihkan via database).',
+      );
     } catch (e) {
-      Get.snackbar('Gagal', 'Pengelola gagal dihapus.');
+      Get.snackbar('Gagal', 'Pengelola gagal dihapus: ${e.toString()}');
     }
   }
 

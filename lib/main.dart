@@ -8,6 +8,7 @@ import 'app/routes/app_routes.dart';
 import 'app/themes/app_theme.dart';
 import 'core/constants/supabase_constants.dart';
 import 'core/services/session_service.dart';
+import 'models/profile_model.dart';
 import 'controllers/auth_controller.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -26,11 +27,42 @@ Future<void> main() async {
 
   await Get.putAsync(() async => SessionService());
   Get.put(AuthController(), permanent: true);
-  runApp(const BisaApp());
+
+  // Cek existing session Supabase (persist setelah browser refresh)
+  final existingUser = Supabase.instance.client.auth.currentUser;
+  String initialRoute = AppRoutes.login;
+
+  if (existingUser != null) {
+    try {
+      final data = await Supabase.instance.client
+          .from(SupabaseConstants.tableProfiles)
+          .select()
+          .eq('auth_user_id', existingUser.id)
+          .single();
+
+      final profile = ProfileModel.fromJson(data);
+      SessionService.to.setProfile(profile);
+
+      if (profile.isKelurahan) {
+        initialRoute = AppRoutes.dashboardKelurahan;
+      } else if (!profile.isVerified) {
+        initialRoute = AppRoutes.menungguVerifikasi;
+      } else {
+        // Pengelola: arahkan ke pilihBankSampah agar bisa pilih BSU aktif
+        initialRoute = AppRoutes.pilihBankSampah;
+      }
+    } catch (_) {
+      // Jika gagal restore profile, kembali ke login
+      initialRoute = AppRoutes.login;
+    }
+  }
+
+  runApp(BisaApp(initialRoute: initialRoute));
 }
 
 class BisaApp extends StatelessWidget {
-  const BisaApp({super.key});
+  final String initialRoute;
+  const BisaApp({super.key, required this.initialRoute});
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +70,7 @@ class BisaApp extends StatelessWidget {
       title: 'BISA - Bank Informasi Sampah',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      initialRoute: AppRoutes.login,
+      initialRoute: initialRoute,
       getPages: AppPages.routes,
     );
   }

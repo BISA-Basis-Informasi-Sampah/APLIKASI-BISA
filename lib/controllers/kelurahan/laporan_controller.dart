@@ -72,7 +72,7 @@ class LaporanController extends GetxController {
           *,
           kategori_sampah(*),
           sub_kategori_sampah(*),
-          jenis_sampah(*),
+          jenis_sampah(*, tipe_sampah(*)),
           satuan(*),
           bank_sampah(nama, rt, rw),
           profiles(nama_lengkap)

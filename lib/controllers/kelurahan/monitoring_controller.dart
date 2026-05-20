@@ -159,7 +159,8 @@ class MonitoringController extends GetxController {
             *,
             kategori_sampah(*),
             sub_kategori_sampah(*),
-            jenis_sampah(*),
+            tipe_sampah(*),
+            jenis_sampah(*, tipe_sampah(*)),
             satuan(*),
             profiles(nama_lengkap)
           ''')

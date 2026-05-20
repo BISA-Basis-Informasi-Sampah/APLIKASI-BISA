@@ -24,7 +24,7 @@ class PengelolaListView extends GetView<PengelolaController> {
           title: const Text('Manajemen Pengelola'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () => Get.back(),
+            onPressed: () => Navigator.of(context).pop(),
           ),
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(48),
@@ -524,8 +524,10 @@ Future<void> _showApproveSheet(
                     pengelola.id,
                     selected.toList(),
                   );
-                  if (controller.isApprovingId.value.isEmpty) {
-                    Get.back();
+                  // isApprovingId kosong artinya proses selesai (sukses/gagal)
+                  // cek sukses via listPending sudah tidak mengandung id ini
+                  if (!controller.listPending.any((p) => p.id == pengelola.id)) {
+                    Navigator.of(ctx).pop();
                   }
                 },
               ),
@@ -625,7 +627,7 @@ Future<void> _showAturBankSampahSheet(
                     selected.toList(),
                   );
                   if (!controller.isSaving.value) {
-                    Get.back();
+                    Navigator.of(ctx).pop();
                   }
                 },
               ),

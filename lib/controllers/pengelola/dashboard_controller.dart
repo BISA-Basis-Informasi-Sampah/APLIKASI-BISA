@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
 import '../../core/services/supabase_service.dart';
@@ -22,19 +23,22 @@ class DashboardController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // FIX: guard jika bank sampah belum dipilih
-    if (SessionService.to.activeBankSampahIdOrNull == null) {
-      Get.offAllNamed(AppRoutes.pilihBankSampah);
-      return;
-    }
-    fetchDashboardData();
+    // Defer navigasi dan fetch agar tidak dipanggil saat build berlangsung
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (SessionService.to.activeBankSampahIdOrNull == null) {
+        Get.offAllNamed(AppRoutes.pilihBankSampah);
+        return;
+      }
+      fetchDashboardData();
+    });
   }
 
   Future<void> fetchDashboardData() async {
-    // FIX: guard sebelum fetch
     final bankSampahId = SessionService.to.activeBankSampahIdOrNull;
     if (bankSampahId == null) {
-      Get.offAllNamed(AppRoutes.pilihBankSampah);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.offAllNamed(AppRoutes.pilihBankSampah);
+      });
       return;
     }
 
@@ -45,7 +49,8 @@ class DashboardController extends GetxController {
         _fetchStatistikBulanIni(bankSampahId),
       ]);
     } catch (e) {
-      Get.snackbar('Error', 'Gagal memuat data dashboard.');
+      debugPrint('ERROR FETCH DASHBOARD: $e');
+      Get.snackbar('Error', 'Gagal memuat data dashboard: $e');
     } finally {
       isLoading.value = false;
     }
@@ -58,7 +63,8 @@ class DashboardController extends GetxController {
           *,
           kategori_sampah(*),
           sub_kategori_sampah(*),
-          jenis_sampah(*),
+          tipe_sampah(*),
+          jenis_sampah(*, tipe_sampah(*)),
           satuan(*)
         ''')
         .eq('bank_sampah_id', bankSampahId)
@@ -96,7 +102,11 @@ class DashboardController extends GetxController {
     );
   }
 
-  void goToInputSampah() => Get.toNamed(AppRoutes.inputSampah);
+  Future<void> goToInputSampah() async {
+    final result = await Get.toNamed(AppRoutes.inputSampah);
+    // Refresh dashboard otomatis setelah kembali dari input (baik simpan maupun batal)
+    if (result == true) fetchDashboardData();
+  }
   void goToHistori() => Get.toNamed(AppRoutes.historiSampah);
   void goToHarga() => Get.toNamed(AppRoutes.hargaSampah);
   void goToProfil() => Get.toNamed(AppRoutes.profilBankSampah);

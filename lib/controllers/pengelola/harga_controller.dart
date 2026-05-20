@@ -7,6 +7,7 @@ import '../../core/constants/supabase_constants.dart';
 import '../../models/harga_sampah_model.dart';
 import '../../models/kategori_model.dart';
 import '../../models/sub_kategori_model.dart';
+import '../../models/tipe_sampah_model.dart';
 import '../../models/jenis_sampah_model.dart';
 import '../../models/satuan_model.dart';
 import '../../app/routes/app_routes.dart';
@@ -18,11 +19,13 @@ class HargaController extends GetxController {
   final listHarga = <HargaSampahModel>[].obs;
   final listKategori = <KategoriModel>[].obs;
   final listSubKategori = <SubKategoriModel>[].obs;
+  final listTipe = <TipeSampahModel>[].obs;
   final listJenisSampah = <JenisSampahModel>[].obs;
   final listSatuan = <SatuanModel>[].obs;
 
   final selectedKategoriId = ''.obs;
   final selectedSubKategoriId = ''.obs;
+  final selectedTipeId = ''.obs;
   final selectedJenisId = ''.obs;
   final selectedSatuanId = ''.obs;
 
@@ -55,6 +58,7 @@ class HargaController extends GetxController {
     fetchAll();
     ever(selectedKategoriId, (_) => _onKategoriChanged());
     ever(selectedSubKategoriId, (_) => _onSubKategoriChanged());
+    ever(selectedTipeId, (_) => _onTipeChanged());
   }
 
   Future<void> fetchAll() async {
@@ -72,7 +76,7 @@ class HargaController extends GetxController {
     final data = await SupabaseService.client
         .from(SupabaseConstants.tableHargaSampah)
         .select(
-            '*, kategori_sampah(*), sub_kategori_sampah(*), jenis_sampah(*), satuan(*)')
+            '*, kategori_sampah(*), sub_kategori_sampah(*), tipe_sampah(*), jenis_sampah(*), satuan(*)')
         .eq('bank_sampah_id', id)
         .order('updated_at', ascending: false);
     listHarga.value =
@@ -100,13 +104,49 @@ class HargaController extends GetxController {
         (data as List).map((e) => SubKategoriModel.fromJson(e)).toList();
   }
 
-  Future<void> _fetchJenisSampah(String subKategoriId) async {
+  Future<void> _fetchTipe(String subKategoriId) async {
+    final data = await SupabaseService.client
+        .from(SupabaseConstants.tableTipeSampah)
+        .select()
+        .eq('sub_kategori_id', subKategoriId)
+        .eq('is_active', true)
+        .order('urutan');
+    listTipe.value =
+        (data as List).map((e) => TipeSampahModel.fromJson(e)).toList();
+  }
+
+  Future<void> _fetchJenisByTipe(String tipeId) async {
+    final data = await SupabaseService.client
+        .from(SupabaseConstants.tableJenisSampah)
+        .select()
+        .eq('tipe_id', tipeId)
+        .eq('is_active', true)
+        .order('urutan');
+    listJenisSampah.value =
+        (data as List).map((e) => JenisSampahModel.fromJson(e)).toList();
+  }
+
+  Future<void> _fetchJenisBySubKategori(String subKategoriId) async {
     final data = await SupabaseService.client
         .from(SupabaseConstants.tableJenisSampah)
         .select()
         .eq('sub_kategori_id', subKategoriId)
+        .isFilter('tipe_id', null)
         .eq('is_active', true)
-        .order('nama');
+        .order('urutan');
+    listJenisSampah.value =
+        (data as List).map((e) => JenisSampahModel.fromJson(e)).toList();
+  }
+
+  Future<void> _fetchJenisByKategori(String kategoriId) async {
+    final data = await SupabaseService.client
+        .from(SupabaseConstants.tableJenisSampah)
+        .select()
+        .eq('kategori_id', kategoriId)
+        .isFilter('sub_kategori_id', null)
+        .isFilter('tipe_id', null)
+        .eq('is_active', true)
+        .order('urutan');
     listJenisSampah.value =
         (data as List).map((e) => JenisSampahModel.fromJson(e)).toList();
   }
@@ -122,34 +162,57 @@ class HargaController extends GetxController {
 
   void _onKategoriChanged() {
     selectedSubKategoriId.value = '';
+    selectedTipeId.value = '';
     selectedJenisId.value = '';
     listSubKategori.clear();
+    listTipe.clear();
     listJenisSampah.clear();
     if (selectedKategoriId.value.isNotEmpty) {
-      _fetchSubKategori(selectedKategoriId.value);
+      _fetchSubKategori(selectedKategoriId.value).then((_) {
+        if (listSubKategori.isEmpty) {
+          _fetchJenisByKategori(selectedKategoriId.value);
+        }
+      });
     }
   }
 
   void _onSubKategoriChanged() {
+    selectedTipeId.value = '';
     selectedJenisId.value = '';
+    listTipe.clear();
     listJenisSampah.clear();
     if (selectedSubKategoriId.value.isNotEmpty) {
-      _fetchJenisSampah(selectedSubKategoriId.value);
+      _fetchTipe(selectedSubKategoriId.value).then((_) {
+        if (listTipe.isEmpty) {
+          _fetchJenisBySubKategori(selectedSubKategoriId.value);
+        }
+      });
+    }
+  }
+
+  void _onTipeChanged() {
+    selectedJenisId.value = '';
+    listJenisSampah.clear();
+    if (selectedTipeId.value.isNotEmpty) {
+      _fetchJenisByTipe(selectedTipeId.value);
     }
   }
 
   void onKategoriChanged(String? id) => selectedKategoriId.value = id ?? '';
   void onSubKategoriChanged(String? id) =>
       selectedSubKategoriId.value = id ?? '';
+  void onTipeChanged(String? id) => selectedTipeId.value = id ?? '';
 
   void resetForm() {
     formKey.currentState?.reset();
     hargaController.clear();
     selectedKategoriId.value = '';
     selectedSubKategoriId.value = '';
+    selectedTipeId.value = '';
     selectedJenisId.value = '';
     selectedSatuanId.value = '';
     listSubKategori.clear();
+    listTipe.clear();
     listJenisSampah.clear();
     _editData = null;
   }
@@ -159,13 +222,22 @@ class HargaController extends GetxController {
     hargaController.text = data.hargaPerSatuan.toString();
     selectedKategoriId.value = data.kategoriId ?? '';
     selectedSubKategoriId.value = data.subKategoriId ?? '';
+    selectedTipeId.value = data.tipeId ?? '';
     selectedJenisId.value = data.jenisSampahId ?? '';
     selectedSatuanId.value = data.satuanId;
 
     if (data.kategoriId != null) {
       _fetchSubKategori(data.kategoriId!).then((_) {
         if (data.subKategoriId != null) {
-          _fetchJenisSampah(data.subKategoriId!);
+          _fetchTipe(data.subKategoriId!).then((_) {
+            if (data.tipeId != null) {
+              _fetchJenisByTipe(data.tipeId!);
+            } else if (listTipe.isEmpty) {
+              _fetchJenisBySubKategori(data.subKategoriId!);
+            }
+          });
+        } else if (listSubKategori.isEmpty) {
+          _fetchJenisByKategori(data.kategoriId!);
         }
       });
     }
@@ -196,6 +268,9 @@ class HargaController extends GetxController {
         'sub_kategori_id': selectedSubKategoriId.value.isEmpty
             ? null
             : selectedSubKategoriId.value,
+        'tipe_id': selectedTipeId.value.isEmpty
+            ? null
+            : selectedTipeId.value,
         'jenis_sampah_id':
             selectedJenisId.value.isEmpty ? null : selectedJenisId.value,
         'harga_per_satuan': double.parse(hargaController.text.trim()),
@@ -218,7 +293,8 @@ class HargaController extends GetxController {
       await fetchHarga();
       resetForm();
     } catch (e) {
-      Get.snackbar('Gagal', 'Harga gagal disimpan.');
+      debugPrint('ERROR SIMPAN HARGA: $e');
+      Get.snackbar('Gagal', 'Harga gagal disimpan: $e');
     } finally {
       isSaving.value = false;
     }
